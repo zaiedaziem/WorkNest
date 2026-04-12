@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/user_model.dart';
+import '../../models/company_model.dart';
 import 'login_screen.dart';
+import 'main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -57,11 +61,76 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 600));
     _taglineController.forward();
     await Future.delayed(const Duration(milliseconds: 1500));
-    _navigateToLogin();
+    await _checkSessionAndNavigate();
   }
 
-  void _navigateToLogin() {
+  Future<void> _checkSessionAndNavigate() async {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (!mounted) return;
+
+    final supabase = Supabase.instance.client;
+    final session = supabase.auth.currentSession;
+
+    // No active session → go to login
+    if (session == null) {
+      _goToLogin();
+      return;
+    }
+
+    // Active session → try to restore user + company data
+    try {
+      final authEmail = session.user.email;
+      if (authEmail == null) {
+        _goToLogin();
+        return;
+      }
+
+      // Fetch user record by email
+      final userData = await supabase
+          .from('users')
+          .select()
+          .eq('email', authEmail)
+          .eq('is_active', true)
+          .maybeSingle();
+
+      if (userData == null) {
+        _goToLogin();
+        return;
+      }
+
+      // Fetch company record
+      final companyData = await supabase
+          .from('companies')
+          .select()
+          .eq('id', userData['company_id'])
+          .maybeSingle();
+
+      if (companyData == null) {
+        _goToLogin();
+        return;
+      }
+
+      final user = UserModel.fromMap(userData);
+      final company = CompanyModel.fromMap(companyData);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) =>
+              MainScreen(user: user, company: company),
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+    } catch (_) {
+      // If anything fails, fall back to login
+      _goToLogin();
+    }
+  }
+
+  void _goToLogin() {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
@@ -98,7 +167,7 @@ class _SplashScreenState extends State<SplashScreen>
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha:0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: const Icon(Icons.hub_rounded,
@@ -126,7 +195,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Text(
                   'Smart HR for Modern Teams',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha:0.75),
+                    color: Colors.white.withValues(alpha: 0.75),
                     fontSize: 15,
                     fontWeight: FontWeight.w400,
                   ),
