@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme/app_theme.dart';
 import 'views/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: '.env');
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -13,9 +16,8 @@ void main() async {
   ]);
 
   await Supabase.initialize(
-    url: 'https://zdowwkuswwczzwrjcffn.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpkb3d3a3Vzd3djenp3cmpjZmZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzI4MDksImV4cCI6MjA5MDIwODgwOX0.-jNrd01Cj2KKBXNX6a_7YkGW0HNwXA86_cpR_V_Jh4s',
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
   runApp(const WorkNestApp());
