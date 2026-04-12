@@ -21,11 +21,19 @@ class HomeViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? _successMessage;
   AttendanceModel? _todayAttendance;
+  List<AttendanceModel> _recentAttendance = [];
+  int _monthPresent = 0;
+  int _monthLate = 0;
+  int _monthTotal = 0;
 
   HomeState get state => _state;
   String? get errorMessage => _errorMessage;
   String? get successMessage => _successMessage;
   AttendanceModel? get todayAttendance => _todayAttendance;
+  List<AttendanceModel> get recentAttendance => _recentAttendance;
+  int get monthPresent => _monthPresent;
+  int get monthLate => _monthLate;
+  int get monthTotal => _monthTotal;
   bool get isLoading => _state == HomeState.loading;
   bool get isClockedIn => _todayAttendance?.isClockedIn ?? false;
   bool get isClockedOut => _todayAttendance?.isClockedOut ?? false;
@@ -35,7 +43,28 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _todayAttendance = await _attendanceService.getTodayAttendance(user.id);
+      final now = DateTime.now();
+      // Load today + month stats + recent in parallel
+      final results = await Future.wait([
+        _attendanceService.getTodayAttendance(user.id),
+        _attendanceService.getMonthHistory(user.id, now.year, now.month),
+      ]);
+
+      _todayAttendance = results[0] as AttendanceModel?;
+      final monthRecords = results[1] as List<AttendanceModel>;
+
+      _monthTotal = monthRecords.length;
+      _monthPresent = monthRecords.where((r) => r.status == 'present').length;
+      _monthLate = monthRecords.where((r) => r.status == 'late').length;
+
+      // Recent = last 3 excluding today
+      _recentAttendance = monthRecords
+          .where((r) =>
+              r.date.toIso8601String().substring(0, 10) !=
+              now.toIso8601String().substring(0, 10))
+          .take(3)
+          .toList();
+
       _state = HomeState.idle;
     } catch (e) {
       _state = HomeState.idle;

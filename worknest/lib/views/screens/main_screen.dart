@@ -4,6 +4,8 @@ import '../../models/company_model.dart';
 import '../../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'attendance_screen.dart';
+import 'leave_screen.dart';
+import 'claims_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final UserModel user;
@@ -22,14 +24,24 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
+  void _navigateToTab(int index) {
+    setState(() => _currentIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          HomeScreen(user: widget.user, company: widget.company),
+          HomeScreen(
+            user: widget.user,
+            company: widget.company,
+            onNavigateToTab: _navigateToTab,
+          ),
           AttendanceScreen(user: widget.user),
+          LeaveScreen(user: widget.user),
+          ClaimsScreen(user: widget.user),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
@@ -50,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             children: [
               _NavItem(
@@ -64,6 +76,18 @@ class _MainScreenState extends State<MainScreen> {
                 label: 'Attendance',
                 isSelected: _currentIndex == 1,
                 onTap: () => setState(() => _currentIndex = 1),
+              ),
+              _NavItem(
+                icon: Icons.beach_access_rounded,
+                label: 'Leave',
+                isSelected: _currentIndex == 2,
+                onTap: () => setState(() => _currentIndex = 2),
+              ),
+              _NavItem(
+                icon: Icons.receipt_long_rounded,
+                label: 'Claims',
+                isSelected: _currentIndex == 3,
+                onTap: () => setState(() => _currentIndex = 3),
               ),
             ],
           ),
