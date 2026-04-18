@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/leave_policy_model.dart';
 import '../models/leave_balance_model.dart';
@@ -143,18 +144,48 @@ class LeaveService {
     }
   }
 
-  // ── Calculate total days (excluding weekends) ─────────────────────────────
+  // ── Upload leave attachment to Supabase Storage ───────────────────────────
+  Future<String> uploadAttachment({
+    required String employeeId,
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    final ext = fileName.contains('.')
+        ? fileName.split('.').last.toLowerCase()
+        : 'bin';
+    final storagePath =
+        '$employeeId/${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    await _supabase.storage
+        .from('leave-attachments')
+        .uploadBinary(
+          storagePath,
+          bytes,
+          fileOptions: FileOptions(contentType: _mimeType(ext)),
+        );
+
+    return _supabase.storage
+        .from('leave-attachments')
+        .getPublicUrl(storagePath);
+  }
+
+  String _mimeType(String ext) {
+    switch (ext) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  // ── Calculate total days (calendar days inclusive) ────────────────────────
   static double calculateDays(DateTime start, DateTime end, bool isHalfDay) {
     if (isHalfDay) return 0.5;
-    int count = 0;
-    DateTime current = start;
-    while (!current.isAfter(end)) {
-      if (current.weekday != DateTime.saturday &&
-          current.weekday != DateTime.sunday) {
-        count++;
-      }
-      current = current.add(const Duration(days: 1));
-    }
-    return count.toDouble();
+    return (end.difference(start).inDays + 1).toDouble();
   }
 }

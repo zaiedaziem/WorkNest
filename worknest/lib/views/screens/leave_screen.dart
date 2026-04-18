@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../models/user_model.dart';
 import '../../models/company_model.dart';
 import '../../models/leave_policy_model.dart';
@@ -265,6 +266,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       builder: (_) => _ApplyLeaveSheet(
         policies: _viewModel.policies,
         balances: _viewModel.balances,
+        userId: widget.user.id,
         onSubmit:
             ({
               required leavePolicyId,
@@ -273,16 +275,25 @@ class _LeaveScreenState extends State<LeaveScreen>
               required isHalfDay,
               halfDayPeriod,
               reason,
+              attachmentUrl,
             }) async {
-              Navigator.pop(context);
-              await _viewModel.submitRequest(
+              // Submit FIRST — only close the sheet if it succeeds.
+              // On failure the sheet stays open so the error snackbar is visible.
+              final success = await _viewModel.submitRequest(
                 leavePolicyId: leavePolicyId,
                 startDate: startDate,
                 endDate: endDate,
                 isHalfDay: isHalfDay,
                 halfDayPeriod: halfDayPeriod,
                 reason: reason,
+                attachmentUrl: attachmentUrl,
               );
+              if (success) {
+                if (context.mounted) Navigator.pop(context);
+              } else {
+                // Throw so _submit() can show it as a dialog
+                throw Exception(_viewModel.errorMessage ?? 'Failed to submit. Please try again.');
+              }
             },
       ),
     );
@@ -617,6 +628,7 @@ class _HistoryCard extends StatelessWidget {
 class _ApplyLeaveSheet extends StatefulWidget {
   final List<LeavePolicyModel> policies;
   final List<LeaveBalanceModel> balances;
+  final String userId;
   final Future<void> Function({
     required String leavePolicyId,
     required DateTime startDate,
@@ -624,12 +636,14 @@ class _ApplyLeaveSheet extends StatefulWidget {
     required bool isHalfDay,
     String? halfDayPeriod,
     String? reason,
+    String? attachmentUrl,
   })
   onSubmit;
 
   const _ApplyLeaveSheet({
     required this.policies,
     required this.balances,
+    required this.userId,
     required this.onSubmit,
   });
 
@@ -645,10 +659,19 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
   String _halfDayPeriod = 'morning';
   final _reasonController = TextEditingController();
   bool _isSubmitting = false;
+  PlatformFile? _pickedFile;
+
+  // Inline validation errors
+  String? _policyError;
+  String? _dateError;
+  String? _documentError;
+  String? _submitError;
 
   double get _calculatedDays {
-    if (_startDate == null || _endDate == null) return 0;
-    return LeaveService.calculateDays(_startDate!, _endDate!, _isHalfDay);
+    if (_startDate == null) return 0;
+    // If end not picked yet, treat as single day
+    final end = _endDate ?? _startDate!;
+    return LeaveService.calculateDays(_startDate!, end, _isHalfDay);
   }
 
   LeaveBalanceModel? get _selectedBalance {
@@ -668,63 +691,85 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
     super.dispose();
   }
 
-  Future<void> _pickDate(bool isStart) async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: isStart
-          ? (_startDate ?? now)
-          : (_endDate ?? _startDate ?? now),
-      firstDate: now.subtract(const Duration(days: 30)),
-      lastDate: now.add(const Duration(days: 365)),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: AppTheme.primary),
-        ),
-        child: child!,
-      ),
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      allowMultiple: false,
+      withData: true,
     );
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _startDate = picked;
-          if (_endDate != null && _endDate!.isBefore(picked)) {
-            _endDate = picked;
-          }
-          if (_isHalfDay) _endDate = picked;
-        } else {
-          _endDate = picked;
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      if (file.size > 5 * 1024 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('File too large. Maximum size is 5 MB.')),
+          );
         }
-      });
+        return;
+      }
+      setState(() => _pickedFile = file);
     }
   }
 
   Future<void> _submit() async {
-    if (_selectedPolicy == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a leave type.')),
-      );
-      return;
-    }
-    if (_startDate == null || _endDate == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select dates.')));
-      return;
-    }
+    // Validate inline
+    setState(() {
+      _policyError = _selectedPolicy == null ? 'Please select a leave type' : null;
+      _dateError = _startDate == null ? 'Please select a date' : null;
+      _documentError = (_selectedPolicy?.requiresDocument == true && _pickedFile == null)
+          ? 'A supporting document is required for this leave type'
+          : null;
+      _submitError = null;
+    });
+
+    if (_policyError != null || _dateError != null || _documentError != null) return;
 
     setState(() => _isSubmitting = true);
-    await widget.onSubmit(
-      leavePolicyId: _selectedPolicy!.id,
-      startDate: _startDate!,
-      endDate: _endDate!,
-      isHalfDay: _isHalfDay,
-      halfDayPeriod: _isHalfDay ? _halfDayPeriod : null,
-      reason: _reasonController.text.trim().isEmpty
-          ? null
-          : _reasonController.text.trim(),
-    );
-    setState(() => _isSubmitting = false);
+
+    // Upload attachment if picked
+    String? attachmentUrl;
+    if (_pickedFile != null && _pickedFile!.bytes != null) {
+      try {
+        attachmentUrl = await LeaveService().uploadAttachment(
+          employeeId: widget.userId,
+          bytes: _pickedFile!.bytes!,
+          fileName: _pickedFile!.name,
+        );
+      } catch (e) {
+        setState(() => _isSubmitting = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Upload failed: ${e.toString().replaceFirst('Exception: ', '')}'),
+              backgroundColor: AppTheme.danger,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    try {
+      await widget.onSubmit(
+        leavePolicyId: _selectedPolicy!.id,
+        startDate: _startDate!,
+        endDate: _endDate ?? _startDate!,
+        isHalfDay: _isHalfDay,
+        halfDayPeriod: _isHalfDay ? _halfDayPeriod : null,
+        reason: _reasonController.text.trim().isEmpty
+            ? null
+            : _reasonController.text.trim(),
+        attachmentUrl: attachmentUrl,
+      );
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      debugPrint('[Submit] caught error: $msg');
+      if (mounted) setState(() => _submitError = msg);
+    }
+    // Sheet may have been closed on success — guard before setState
+    if (mounted) setState(() => _isSubmitting = false);
   }
 
   @override
@@ -811,6 +856,7 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
                     }).toList(),
                     onChanged: (val) => setState(() {
                       _selectedPolicy = val;
+                      _policyError = null;
                       if (val != null && !val.allowHalfDay) {
                         _isHalfDay = false;
                       }
@@ -818,6 +864,12 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
                   ),
                 ),
               ),
+
+              // Policy inline error
+              if (_policyError != null) ...[
+                const SizedBox(height: 6),
+                _InlineError(message: _policyError!),
+              ],
 
               // Balance info
               if (_selectedBalance != null) ...[
@@ -854,30 +906,49 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
 
               const SizedBox(height: 16),
 
-              // Half day toggle
-              if (_selectedPolicy?.allowHalfDay == true) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Half Day',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textDark,
+              // Half day toggle — always shown when a policy is selected
+              if (_selectedPolicy != null) ...[
+                Opacity(
+                  opacity: _selectedPolicy!.allowHalfDay ? 1.0 : 0.4,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Half Day',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          if (!_selectedPolicy!.allowHalfDay)
+                            const Text(
+                              'Not available for this leave type',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
-                    Switch(
-                      value: _isHalfDay,
-                      activeColor: AppTheme.primary,
-                      onChanged: (val) => setState(() {
-                        _isHalfDay = val;
-                        if (val && _startDate != null) {
-                          _endDate = _startDate;
-                        }
-                      }),
-                    ),
-                  ],
+                      Switch(
+                        value: _isHalfDay,
+                        activeColor: AppTheme.primary,
+                        onChanged: _selectedPolicy!.allowHalfDay
+                            ? (val) => setState(() {
+                                  _isHalfDay = val;
+                                  if (val && _startDate != null) {
+                                    _endDate = _startDate;
+                                  }
+                                  if (!val) _endDate = null;
+                                })
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
                 if (_isHalfDay) ...[
                   Row(
@@ -900,33 +971,51 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
                 ],
               ],
 
+              const SizedBox(height: 4),
+
+              // ── Inline range calendar ──────────────────────────────────────
+              const Text(
+                'Select Date(s)',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+
+              // Selected date summary row
+              _DateSummaryRow(
+                startDate: _startDate,
+                endDate: _endDate,
+                isHalfDay: _isHalfDay,
+                onClear: () => setState(() {
+                  _startDate = null;
+                  _endDate = null;
+                }),
+              ),
               const SizedBox(height: 8),
 
-              // Dates
-              Row(
-                children: [
-                  Expanded(
-                    child: _DateField(
-                      label: 'Start Date',
-                      date: _startDate,
-                      onTap: () => _pickDate(true),
-                    ),
-                  ),
-                  if (!_isHalfDay) ...[
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _DateField(
-                        label: 'End Date',
-                        date: _endDate,
-                        onTap: () => _pickDate(false),
-                      ),
-                    ),
-                  ],
-                ],
+              // Calendar
+              _RangeDatePicker(
+                startDate: _startDate,
+                endDate: _endDate,
+                isHalfDay: _isHalfDay,
+                onChanged: (start, end) => setState(() {
+                  _startDate = start;
+                  _endDate = end;
+                  _dateError = null;
+                }),
               ),
 
+              // Date inline error
+              if (_dateError != null) ...[
+                const SizedBox(height: 6),
+                _InlineError(message: _dateError!),
+              ],
+
               // Days summary
-              if (_startDate != null && _endDate != null) ...[
+              if (_startDate != null) ...[
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -956,6 +1045,125 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
                     ],
                   ),
                 ),
+              ],
+
+              const SizedBox(height: 16),
+
+              // ── Document Upload ────────────────────────────────────────────
+              Row(
+                children: [
+                  const Text(
+                    'Supporting Document',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  if (_selectedPolicy?.requiresDocument == true)
+                    const Text(
+                      '(required)',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.danger,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
+                  else
+                    const Text(
+                      '(optional)',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _pickFile,
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: _pickedFile != null
+                          ? AppTheme.primary
+                          : const Color(0xFFE5E7EB),
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    color: _pickedFile != null
+                        ? AppTheme.primary.withValues(alpha: 0.04)
+                        : Colors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          _pickedFile != null
+                              ? Icons.insert_drive_file_rounded
+                              : Icons.upload_file_rounded,
+                          color: AppTheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _pickedFile != null
+                                  ? _pickedFile!.name
+                                  : 'Tap to upload',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: _pickedFile != null
+                                    ? AppTheme.textDark
+                                    : AppTheme.textMuted,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _pickedFile != null
+                                  ? '${(_pickedFile!.size / 1024).toStringAsFixed(1)} KB'
+                                  : 'PDF, JPG or PNG • max 5 MB',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_pickedFile != null)
+                        GestureDetector(
+                          onTap: () => setState(() {
+                            _pickedFile = null;
+                            _documentError = null;
+                          }),
+                          child: const Icon(
+                            Icons.close_rounded,
+                            size: 18,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Document inline error
+              if (_documentError != null) ...[
+                const SizedBox(height: 6),
+                _InlineError(message: _documentError!),
               ],
 
               const SizedBox(height: 16),
@@ -995,6 +1203,39 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
               ),
 
               const SizedBox(height: 24),
+
+              // Submit-level error (e.g. Supabase error)
+              if (_submitError != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.danger.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: AppTheme.danger.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.error_outline_rounded,
+                          color: AppTheme.danger, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _submitError!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.danger,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               // Submit button
               SizedBox(
@@ -1036,6 +1277,362 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
   }
 }
 
+// ── Date Summary Row ──────────────────────────────────────────────────────────
+
+class _DateSummaryRow extends StatelessWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final bool isHalfDay;
+  final VoidCallback onClear;
+
+  const _DateSummaryRow({
+    required this.startDate,
+    required this.endDate,
+    required this.isHalfDay,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (startDate == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 6),
+        child: Text(
+          'Tap a date to start. Tap another to set the end date.',
+          style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+        ),
+      );
+    }
+
+    final fmt = DateFormat('d MMM yyyy');
+    String label;
+
+    if (isHalfDay) {
+      label = fmt.format(startDate!);
+    } else if (endDate == null) {
+      label = '${fmt.format(startDate!)}  →  tap to set end';
+    } else {
+      final isSame = startDate!.year == endDate!.year &&
+          startDate!.month == endDate!.month &&
+          startDate!.day == endDate!.day;
+      label = isSame
+          ? fmt.format(startDate!)
+          : '${fmt.format(startDate!)}  –  ${fmt.format(endDate!)}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today_rounded,
+              size: 14, color: AppTheme.primary),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primary,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: onClear,
+            child: const Icon(Icons.close_rounded,
+                size: 16, color: AppTheme.textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Range Date Picker ─────────────────────────────────────────────────────────
+
+class _RangeDatePicker extends StatefulWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final bool isHalfDay;
+  final void Function(DateTime? start, DateTime? end) onChanged;
+
+  const _RangeDatePicker({
+    required this.startDate,
+    required this.endDate,
+    required this.isHalfDay,
+    required this.onChanged,
+  });
+
+  @override
+  State<_RangeDatePicker> createState() => _RangeDatePickerState();
+}
+
+class _RangeDatePickerState extends State<_RangeDatePicker> {
+  late DateTime _focusedMonth;
+
+  static const _weekLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  static const _rangeColor = Color(0xFFCCF3F8); // light teal tint
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _focusedMonth = DateTime(now.year, now.month);
+  }
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  void _onDayTap(DateTime tapped) {
+    final start = widget.startDate;
+    final end = widget.endDate;
+
+    // Half day — always single day
+    if (widget.isHalfDay) {
+      widget.onChanged(tapped, tapped);
+      return;
+    }
+
+    // No start yet, or both already set → start fresh
+    if (start == null || (start != null && end != null)) {
+      widget.onChanged(tapped, null);
+      return;
+    }
+
+    // Have start, no end yet
+    if (_sameDay(tapped, start)) {
+      // Tapped same day → confirm single-day selection
+      widget.onChanged(start, start);
+    } else if (tapped.isBefore(start)) {
+      // Tapped before start → swap
+      widget.onChanged(tapped, start);
+    } else {
+      // Tapped after start → set end
+      widget.onChanged(start, tapped);
+    }
+  }
+
+  Widget _buildDayCell(DateTime day) {
+    final start = widget.startDate;
+    final end = widget.endDate;
+
+    final isStart = start != null && _sameDay(day, start);
+    final isEnd = end != null && _sameDay(day, end);
+    final isSingleDay = isStart && isEnd;
+
+    final hasRange = start != null && end != null && !_sameDay(start, end);
+    final inRange = hasRange &&
+        day.isAfter(start!) &&
+        day.isBefore(end!);
+
+    final isToday = _sameDay(day, DateTime.now());
+
+    // Disable past (>30 days ago) and far future (>1 year)
+    final isDisabled = day.isBefore(
+          DateTime.now().subtract(const Duration(days: 30)),
+        ) ||
+        day.isAfter(DateTime.now().add(const Duration(days: 365)));
+
+    // Range background: left half and right half independently
+    final bool leftBg = inRange || (isEnd && hasRange);
+    final bool rightBg = inRange || (isStart && hasRange);
+
+    return GestureDetector(
+      onTap: isDisabled ? null : () => _onDayTap(day),
+      child: SizedBox(
+        height: 40,
+        child: Stack(
+          children: [
+            // ── Range highlight background ──
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    color: leftBg ? _rangeColor : Colors.transparent,
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    color: rightBg ? _rangeColor : Colors.transparent,
+                  ),
+                ),
+              ],
+            ),
+
+            // ── Day circle ──
+            Center(
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: (isStart || isEnd) && !isSingleDay
+                      ? AppTheme.primary
+                      : isSingleDay
+                          ? AppTheme.primary
+                          : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: isToday && !isStart && !isEnd
+                      ? Border.all(color: AppTheme.primary, width: 1.5)
+                      : null,
+                ),
+                child: Center(
+                  child: Text(
+                    '${day.day}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: (isStart || isEnd)
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: (isStart || isEnd)
+                          ? Colors.white
+                          : isDisabled
+                              ? const Color(0xFFD1D5DB)
+                              : isToday
+                                  ? AppTheme.primary
+                                  : AppTheme.textDark,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final firstOfMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month, 1);
+    final daysInMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month + 1, 0).day;
+    // weekday: Mon=1..Sun=7 → convert to Sun=0..Sat=6
+    final startOffset = firstOfMonth.weekday % 7;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+      child: Column(
+        children: [
+          // ── Month navigation ──
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded, size: 22),
+                color: AppTheme.textDark,
+                onPressed: () => setState(() {
+                  _focusedMonth = DateTime(
+                    _focusedMonth.year,
+                    _focusedMonth.month - 1,
+                  );
+                }),
+              ),
+              Text(
+                DateFormat('MMMM yyyy').format(_focusedMonth),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded, size: 22),
+                color: AppTheme.textDark,
+                onPressed: () => setState(() {
+                  _focusedMonth = DateTime(
+                    _focusedMonth.year,
+                    _focusedMonth.month + 1,
+                  );
+                }),
+              ),
+            ],
+          ),
+
+          // ── Week day labels ──
+          Row(
+            children: _weekLabels
+                .map(
+                  (d) => Expanded(
+                    child: Center(
+                      child: Text(
+                        d,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textMuted,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+
+          const SizedBox(height: 4),
+
+          // ── Days grid ──
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              childAspectRatio: 1.0,
+            ),
+            itemCount: startOffset + daysInMonth,
+            itemBuilder: (_, index) {
+              if (index < startOffset) return const SizedBox();
+              final day = DateTime(
+                _focusedMonth.year,
+                _focusedMonth.month,
+                index - startOffset + 1,
+              );
+              return _buildDayCell(day);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Half Day Chip ─────────────────────────────────────────────────────────────
+
+// ── Inline Error ──────────────────────────────────────────────────────────────
+
+class _InlineError extends StatelessWidget {
+  final String message;
+  const _InlineError({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.error_outline_rounded,
+            size: 13, color: AppTheme.danger),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            message,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.danger,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Half Day Chip ─────────────────────────────────────────────────────────────
+
 class _HalfDayChip extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -1067,67 +1664,6 @@ class _HalfDayChip extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _DateField extends StatelessWidget {
-  final String label;
-  final DateTime? date;
-  final VoidCallback onTap;
-  const _DateField({
-    required this.label,
-    required this.date,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textDark,
-          ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE5E7EB)),
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.white,
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today_rounded,
-                  size: 16,
-                  color: AppTheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  date != null
-                      ? DateFormat('d MMM yyyy').format(date!)
-                      : 'Select date',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: date != null
-                        ? AppTheme.textDark
-                        : AppTheme.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

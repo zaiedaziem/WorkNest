@@ -64,13 +64,14 @@ class LeaveViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> submitRequest({
+  Future<bool> submitRequest({
     required String leavePolicyId,
     required DateTime startDate,
     required DateTime endDate,
     required bool isHalfDay,
     String? halfDayPeriod,
     String? reason,
+    String? attachmentUrl,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -78,6 +79,10 @@ class LeaveViewModel extends ChangeNotifier {
     try {
       final totalDays =
           LeaveService.calculateDays(startDate, endDate, isHalfDay);
+
+      debugPrint('[LeaveVM] Submitting: policy=$leavePolicyId '
+          'employee=${user.id} company=${company.id} '
+          'start=$startDate end=$endDate days=$totalDays');
 
       await _service.submitRequest(
         employeeId: user.id,
@@ -89,14 +94,20 @@ class LeaveViewModel extends ChangeNotifier {
         halfDayPeriod: halfDayPeriod,
         totalDays: totalDays,
         reason: reason,
+        attachmentUrl: attachmentUrl,
       );
 
+      debugPrint('[LeaveVM] Submit success');
       _successMessage = 'Leave request submitted successfully!';
-      await loadData(); // Refresh balances and history
+      await loadData();
+      return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      debugPrint('[LeaveVM] Submit FAILED: $msg');
+      _errorMessage = msg;
       _isLoading = false;
       notifyListeners();
+      return false;
     }
   }
 
