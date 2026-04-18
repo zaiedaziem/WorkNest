@@ -40,7 +40,7 @@ class _MainScreenState extends State<MainScreen> {
             onNavigateToTab: _navigateToTab,
           ),
           AttendanceScreen(user: widget.user),
-          LeaveScreen(user: widget.user),
+          LeaveScreen(user: widget.user, company: widget.company),
           ClaimsScreen(user: widget.user),
         ],
       ),
