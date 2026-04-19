@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 import '../models/company_model.dart';
 import '../models/attendance_model.dart';
@@ -73,6 +75,16 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Fetch the latest company settings fresh from Supabase
+  Future<CompanyModel> _fetchFreshCompany() async {
+    final data = await Supabase.instance.client
+        .from('companies')
+        .select()
+        .eq('id', company.id)
+        .single();
+    return CompanyModel.fromMap(data);
+  }
+
   Future<void> clockIn(String type) async {
     _state = HomeState.loading;
     _errorMessage = null;
@@ -82,7 +94,15 @@ class HomeViewModel extends ChangeNotifier {
     try {
       double? lat, lng;
 
-      if (type == 'office' && company.locationEnabled) {
+      // Always fetch fresh company data so location/radius changes take effect immediately
+      final freshCompany = await _fetchFreshCompany();
+
+      debugPrint('[ClockIn] locationEnabled=${freshCompany.locationEnabled} '
+          'hasLocation=${freshCompany.hasLocation} '
+          'lat=${freshCompany.officeLat} lng=${freshCompany.officeLng} '
+          'radius=${freshCompany.officeRadius}');
+
+      if (type == 'office' && freshCompany.locationEnabled) {
         // Check location permission
         LocationPermission permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.denied) {
@@ -103,16 +123,16 @@ class HomeViewModel extends ChangeNotifier {
         lat = position.latitude;
         lng = position.longitude;
 
-        // Check if within office radius
-        if (company.hasLocation) {
+        // Check if within office radius using FRESH company data
+        if (freshCompany.hasLocation) {
           final distance = Geolocator.distanceBetween(
             lat, lng,
-            company.officeLat!, company.officeLng!,
+            freshCompany.officeLat!, freshCompany.officeLng!,
           );
 
-          if (distance > company.officeRadius) {
+          if (distance > freshCompany.officeRadius) {
             throw Exception(
-                'You are ${distance.toStringAsFixed(0)}m away from the office. Must be within ${company.officeRadius}m.');
+                'You are ${distance.toStringAsFixed(0)}m away from the office. Must be within ${freshCompany.officeRadius}m.');
           }
         }
       }
@@ -122,8 +142,8 @@ class HomeViewModel extends ChangeNotifier {
         type: type,
         lat: lat,
         lng: lng,
-        workStartHour: company.workStartHour,
-        workStartMinute: company.workStartMinute,
+        workStartHour: freshCompany.workStartHour,
+        workStartMinute: freshCompany.workStartMinute,
       );
 
       _successMessage = type == 'office'

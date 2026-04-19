@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/leave_policy_model.dart';
 import '../models/leave_balance_model.dart';
@@ -57,6 +57,8 @@ class LeaveService {
   }) async {
     final year = DateTime.now().year;
 
+    debugPrint('[LeaveService] Step 1 — checking balance...');
+
     // Check leave balance
     final balanceData = await _supabase
         .from('leave_balances')
@@ -64,7 +66,14 @@ class LeaveService {
         .eq('employee_id', employeeId)
         .eq('leave_policy_id', leavePolicyId)
         .eq('year', year)
-        .maybeSingle();
+        .maybeSingle()
+        .timeout(
+          const Duration(seconds: 15),
+          onTimeout: () =>
+              throw Exception('Timed out checking balance. Check your connection.'),
+        );
+
+    debugPrint('[LeaveService] Step 1 done — balanceData: $balanceData');
 
     if (balanceData != null) {
       final balance = LeaveBalanceModel.fromMap(balanceData);
@@ -73,6 +82,8 @@ class LeaveService {
             'Insufficient balance. You have ${balance.remainingDays} day(s) remaining.');
       }
     }
+
+    debugPrint('[LeaveService] Step 2 — inserting leave_request...');
 
     // Insert leave request
     await _supabase.from('leave_requests').insert({
@@ -87,10 +98,17 @@ class LeaveService {
       'reason': reason,
       'attachment_url': attachmentUrl,
       'status': 'pending',
-    });
+    }).timeout(
+      const Duration(seconds: 15),
+      onTimeout: () =>
+          throw Exception('Timed out inserting request. RLS policy may be blocking the insert.'),
+    );
+
+    debugPrint('[LeaveService] Step 2 done — insert OK');
 
     // Update pending days in balance
     if (balanceData != null) {
+      debugPrint('[LeaveService] Step 3 — updating pending_days...');
       final currentPending =
           (balanceData['pending_days'] as num?)?.toDouble() ?? 0.0;
       await _supabase
@@ -98,7 +116,13 @@ class LeaveService {
           .update({'pending_days': currentPending + totalDays})
           .eq('employee_id', employeeId)
           .eq('leave_policy_id', leavePolicyId)
-          .eq('year', year);
+          .eq('year', year)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () =>
+                throw Exception('Timed out updating balance.'),
+          );
+      debugPrint('[LeaveService] Step 3 done');
     }
   }
 
@@ -156,13 +180,27 @@ class LeaveService {
     final storagePath =
         '$employeeId/${DateTime.now().millisecondsSinceEpoch}.$ext';
 
-    await _supabase.storage
-        .from('leave-attachments')
-        .uploadBinary(
-          storagePath,
-          bytes,
-          fileOptions: FileOptions(contentType: _mimeType(ext)),
-        );
+    debugPrint('[LeaveService] Uploading attachment: $storagePath (${bytes.length} bytes)');
+
+    try {
+      await _supabase.storage
+          .from('leave-attachments')
+          .uploadBinary(
+            storagePath,
+            bytes,
+            fileOptions: FileOptions(contentType: _mimeType(ext)),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => throw Exception(
+                'Upload timed out. Check your internet connection.'),
+          );
+    } on StorageException catch (e) {
+      debugPrint('[LeaveService] Storage error: ${e.message} (status: ${e.statusCode})');
+      throw Exception('Upload failed: ${e.message}');
+    }
+
+    debugPrint('[LeaveService] Upload done — getting public URL');
 
     return _supabase.storage
         .from('leave-attachments')

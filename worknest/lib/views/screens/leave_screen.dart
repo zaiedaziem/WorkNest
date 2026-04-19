@@ -1394,7 +1394,7 @@ class _RangeDatePickerState extends State<_RangeDatePicker> {
     }
 
     // No start yet, or both already set → start fresh
-    if (start == null || (start != null && end != null)) {
+    if (start == null || (end != null)) {
       widget.onChanged(tapped, null);
       return;
     }
@@ -1422,8 +1422,8 @@ class _RangeDatePickerState extends State<_RangeDatePicker> {
 
     final hasRange = start != null && end != null && !_sameDay(start, end);
     final inRange = hasRange &&
-        day.isAfter(start!) &&
-        day.isBefore(end!);
+        day.isAfter(start) &&
+        day.isBefore(end);
 
     final isToday = _sameDay(day, DateTime.now());
 
