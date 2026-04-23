@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../viewmodels/home_viewmodel.dart';
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
+import '../../widgets/haptic_refresh_indicator.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -131,8 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: RefreshIndicator(
-          color: AppTheme.primary,
+        child: HapticRefreshIndicator(
           onRefresh: _viewModel.loadTodayAttendance,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),

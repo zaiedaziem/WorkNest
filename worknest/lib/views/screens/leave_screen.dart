@@ -9,6 +9,7 @@ import '../../models/leave_request_model.dart';
 import '../../viewmodels/leave_viewmodel.dart';
 import '../../theme/app_theme.dart';
 import '../../services/leave_service.dart';
+import '../../widgets/haptic_refresh_indicator.dart';
 
 class LeaveScreen extends StatefulWidget {
   final UserModel user;
@@ -185,8 +186,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       );
     }
 
-    return RefreshIndicator(
-      color: AppTheme.primary,
+    return HapticRefreshIndicator(
       onRefresh: _viewModel.loadData,
       child: ListView(
         padding: const EdgeInsets.all(20),
@@ -239,8 +239,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       );
     }
 
-    return RefreshIndicator(
-      color: AppTheme.primary,
+    return HapticRefreshIndicator(
       onRefresh: _viewModel.loadData,
       child: ListView.separated(
         padding: const EdgeInsets.all(20),
