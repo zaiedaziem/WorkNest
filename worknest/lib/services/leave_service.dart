@@ -7,8 +7,8 @@ import '../models/leave_request_model.dart';
 class LeaveService {
   final _supabase = Supabase.instance.client;
 
-  // ── Get active leave policies for a company ───────────────────────────────
-  Future<List<LeavePolicyModel>> getPolicies(String companyId) async {
+  // ── Get all active leave policies for a company (UI handles gender visibility) ──
+  Future<List<LeavePolicyModel>> getPolicies(String companyId, {String gender = 'other'}) async {
     final data = await _supabase
         .from('leave_policies')
         .select()
@@ -221,9 +221,19 @@ class LeaveService {
     }
   }
 
-  // ── Calculate total days (calendar days inclusive) ────────────────────────
+  // ── Calculate total working days (Mon–Fri, inclusive) ─────────────────────
   static double calculateDays(DateTime start, DateTime end, bool isHalfDay) {
     if (isHalfDay) return 0.5;
-    return (end.difference(start).inDays + 1).toDouble();
+    int count = 0;
+    DateTime current = DateTime(start.year, start.month, start.day);
+    final last = DateTime(end.year, end.month, end.day);
+    while (!current.isAfter(last)) {
+      if (current.weekday != DateTime.saturday &&
+          current.weekday != DateTime.sunday) {
+        count++;
+      }
+      current = current.add(const Duration(days: 1));
+    }
+    return count.toDouble();
   }
 }

@@ -267,6 +267,7 @@ class _LeaveScreenState extends State<LeaveScreen>
         policies: _viewModel.policies,
         balances: _viewModel.balances,
         userId: widget.user.id,
+        userGender: widget.user.gender,
         onSubmit:
             ({
               required leavePolicyId,
@@ -629,6 +630,7 @@ class _ApplyLeaveSheet extends StatefulWidget {
   final List<LeavePolicyModel> policies;
   final List<LeaveBalanceModel> balances;
   final String userId;
+  final String userGender;
   final Future<void> Function({
     required String leavePolicyId,
     required DateTime startDate,
@@ -644,8 +646,14 @@ class _ApplyLeaveSheet extends StatefulWidget {
     required this.policies,
     required this.balances,
     required this.userId,
+    required this.userGender,
     required this.onSubmit,
   });
+
+  bool isEligible(LeavePolicyModel policy) {
+    if (policy.genderRestriction == 'all') return true;
+    return policy.genderRestriction == userGender;
+  }
 
   @override
   State<_ApplyLeaveSheet> createState() => _ApplyLeaveSheetState();
@@ -833,24 +841,57 @@ class _ApplyLeaveSheetState extends State<_ApplyLeaveSheet> {
                       style: TextStyle(color: AppTheme.textMuted),
                     ),
                     items: widget.policies.map((p) {
+                      final eligible = widget.isEligible(p);
                       final balance = widget.balances
                           .where((b) => b.leavePolicyId == p.id)
                           .firstOrNull;
+                      final genderLabel = p.genderRestriction == 'female'
+                          ? '♀ Female only'
+                          : p.genderRestriction == 'male'
+                              ? '♂ Male only'
+                              : null;
                       return DropdownMenuItem(
                         value: p,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(p.name),
-                            if (balance != null)
-                              Text(
-                                '${balance.remainingDays % 1 == 0 ? balance.remainingDays.toInt() : balance.remainingDays} days left',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.textMuted,
+                        enabled: eligible,
+                        child: Opacity(
+                          opacity: eligible ? 1.0 : 0.4,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      p.name,
+                                      style: TextStyle(
+                                        color: eligible
+                                            ? AppTheme.textDark
+                                            : AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    if (!eligible && genderLabel != null)
+                                      Text(
+                                        genderLabel,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: AppTheme.danger,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
-                          ],
+                              if (eligible && balance != null)
+                                Text(
+                                  '${balance.remainingDays % 1 == 0 ? balance.remainingDays.toInt() : balance.remainingDays} days left',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       );
                     }).toList(),
@@ -1384,6 +1425,10 @@ class _RangeDatePickerState extends State<_RangeDatePicker> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   void _onDayTap(DateTime tapped) {
+    // Never allow weekend selection
+    if (tapped.weekday == DateTime.saturday ||
+        tapped.weekday == DateTime.sunday) return;
+
     final start = widget.startDate;
     final end = widget.endDate;
 
@@ -1426,14 +1471,18 @@ class _RangeDatePickerState extends State<_RangeDatePicker> {
         day.isBefore(end);
 
     final isToday = _sameDay(day, DateTime.now());
+    final isWeekend = day.weekday == DateTime.saturday ||
+        day.weekday == DateTime.sunday;
 
-    // Disable past (>30 days ago) and far future (>1 year)
-    final isDisabled = day.isBefore(
+    // Disable weekends, past (>30 days ago) and far future (>1 year)
+    final isDisabled = isWeekend ||
+        day.isBefore(
           DateTime.now().subtract(const Duration(days: 30)),
         ) ||
         day.isAfter(DateTime.now().add(const Duration(days: 365)));
 
     // Range background: left half and right half independently
+    // Weekends still show range tint for visual continuity
     final bool leftBg = inRange || (isEnd && hasRange);
     final bool rightBg = inRange || (isStart && hasRange);
 
@@ -1458,6 +1507,10 @@ class _RangeDatePickerState extends State<_RangeDatePicker> {
                 ),
               ],
             ),
+
+            // ── Weekend tint (subtle grey background) ──
+            if (isWeekend && !isStart && !isEnd)
+              Container(color: const Color(0xFFF3F4F6)),
 
             // ── Day circle ──
             Center(
@@ -1485,11 +1538,13 @@ class _RangeDatePickerState extends State<_RangeDatePicker> {
                           : FontWeight.w500,
                       color: (isStart || isEnd)
                           ? Colors.white
-                          : isDisabled
+                          : isWeekend
                               ? const Color(0xFFD1D5DB)
-                              : isToday
-                                  ? AppTheme.primary
-                                  : AppTheme.textDark,
+                              : isDisabled
+                                  ? const Color(0xFFD1D5DB)
+                                  : isToday
+                                      ? AppTheme.primary
+                                      : AppTheme.textDark,
                     ),
                   ),
                 ),
@@ -1557,15 +1612,20 @@ class _RangeDatePickerState extends State<_RangeDatePicker> {
           // ── Week day labels ──
           Row(
             children: _weekLabels
+                .asMap()
+                .entries
                 .map(
-                  (d) => Expanded(
+                  (e) => Expanded(
                     child: Center(
                       child: Text(
-                        d,
-                        style: const TextStyle(
+                        e.value,
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.textMuted,
+                          // Sun (0) and Sat (6) are grey, weekdays are normal
+                          color: (e.key == 0 || e.key == 6)
+                              ? const Color(0xFFD1D5DB)
+                              : AppTheme.textMuted,
                         ),
                       ),
                     ),

@@ -40,7 +40,7 @@ class LeaveViewModel extends ChangeNotifier {
 
     try {
       final results = await Future.wait([
-        _service.getPolicies(company.id),
+        _service.getPolicies(company.id, gender: user.gender),
         _service.getBalances(user.id),
         _service.getHistory(user.id),
       ]);
