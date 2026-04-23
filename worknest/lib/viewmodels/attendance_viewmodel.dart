@@ -5,6 +5,9 @@ import '../services/attendance_service.dart';
 /// Status of a single working day in the month view.
 enum DayStatus { present, late, onLeave, absent, upcoming }
 
+/// Filter options shown as chips above the list.
+enum DayFilter { all, present, late, onLeave, absent }
+
 /// One row in the attendance list — represents a single working day
 /// (Mon–Fri) and combines attendance + leave data.
 class DayRecord {
@@ -34,6 +37,7 @@ class AttendanceViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+  DayFilter _filter = DayFilter.all;
 
   AttendanceViewModel({required this.employeeId}) {
     loadMonth();
@@ -44,6 +48,37 @@ class AttendanceViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   DateTime get selectedMonth => _selectedMonth;
+  DayFilter get filter => _filter;
+
+  /// Day records filtered by the active chip.
+  List<DayRecord> get filteredDayRecords {
+    switch (_filter) {
+      case DayFilter.all:
+        return _dayRecords;
+      case DayFilter.present:
+        return _dayRecords
+            .where((d) => d.status == DayStatus.present)
+            .toList();
+      case DayFilter.late:
+        return _dayRecords
+            .where((d) => d.status == DayStatus.late)
+            .toList();
+      case DayFilter.onLeave:
+        return _dayRecords
+            .where((d) => d.status == DayStatus.onLeave)
+            .toList();
+      case DayFilter.absent:
+        return _dayRecords
+            .where((d) => d.status == DayStatus.absent)
+            .toList();
+    }
+  }
+
+  void setFilter(DayFilter f) {
+    if (_filter == f) return;
+    _filter = f;
+    notifyListeners();
+  }
 
   // Summary counts — based on day records (not raw attendance)
   int get totalPresent =>
@@ -56,6 +91,41 @@ class AttendanceViewModel extends ChangeNotifier {
       _dayRecords.where((d) => d.status == DayStatus.absent).length;
   int get totalWorkingDays =>
       _dayRecords.where((d) => d.status != DayStatus.upcoming).length;
+
+  /// Sum of clock-in to clock-out durations across the month.
+  Duration get totalHoursWorked {
+    Duration total = Duration.zero;
+    for (final r in _records) {
+      final d = r.duration;
+      if (d != null) total += d;
+    }
+    return total;
+  }
+
+  /// Formatted like "142h 30m" (or "45m" if under an hour).
+  String get totalHoursWorkedText {
+    final total = totalHoursWorked;
+    if (total == Duration.zero) return '0h';
+    final h = total.inHours;
+    final m = total.inMinutes.remainder(60);
+    if (h == 0) return '${m}m';
+    return '${h}h ${m}m';
+  }
+
+  /// On-time rate: present / (present + late). Returns null if no attendance
+  /// yet this month (so the UI can show a placeholder).
+  double? get onTimeRate {
+    final attendanceTotal = totalPresent + totalLate;
+    if (attendanceTotal == 0) return null;
+    return totalPresent / attendanceTotal;
+  }
+
+  /// Formatted like "90%" or "—" if no attendance yet.
+  String get onTimeRateText {
+    final rate = onTimeRate;
+    if (rate == null) return '—';
+    return '${(rate * 100).round()}%';
+  }
 
   // Whether we can go forward (don't allow future months)
   bool get canGoNext =>
@@ -187,12 +257,14 @@ class AttendanceViewModel extends ChangeNotifier {
 
   void previousMonth() {
     _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    _filter = DayFilter.all;
     loadMonth();
   }
 
   void nextMonth() {
     if (!canGoNext) return;
     _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    _filter = DayFilter.all;
     loadMonth();
   }
 }
