@@ -9,6 +9,7 @@ class UserModel {
   final String? position;
   final String? department;
   final String? joinDate;
+  final String gender; // male / female / other
 
   UserModel({
     required this.id,
@@ -21,6 +22,7 @@ class UserModel {
     this.position,
     this.department,
     this.joinDate,
+    this.gender = 'other',
   });
 
   String get fullName => '$firstName $lastName';
@@ -41,6 +43,7 @@ class UserModel {
       position: map['position'],
       department: map['department'],
       joinDate: map['joinDate'] ?? map['join_date'] ?? map['created_at'],
+      gender: map['gender']?.toString() ?? 'other',
     );
   }
 }
