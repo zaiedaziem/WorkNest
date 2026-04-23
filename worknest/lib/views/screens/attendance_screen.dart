@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../models/attendance_model.dart';
 import '../../models/user_model.dart';
 import '../../theme/app_theme.dart';
 import '../../viewmodels/attendance_viewmodel.dart';
@@ -71,7 +70,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textDark)),
-          Text('Your work attendance history',
+          Text('All working days in the month',
               style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.textMuted.withValues(alpha: 0.8))),
@@ -148,26 +147,26 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       children: [
         Expanded(
             child: _SummaryCard(
-          label: 'Total Days',
-          value: '${_viewModel.totalDays}',
-          icon: Icons.calendar_month_rounded,
-          color: AppTheme.primary,
-        )),
-        const SizedBox(width: 12),
-        Expanded(
-            child: _SummaryCard(
           label: 'Present',
-          value: '${_viewModel.totalPresent}',
+          value: '${_viewModel.totalPresent + _viewModel.totalLate}',
           icon: Icons.check_circle_rounded,
           color: AppTheme.success,
         )),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
             child: _SummaryCard(
-          label: 'Late',
-          value: '${_viewModel.totalLate}',
-          icon: Icons.schedule_rounded,
-          color: AppTheme.warning,
+          label: 'On Leave',
+          value: '${_viewModel.totalOnLeave}',
+          icon: Icons.beach_access_rounded,
+          color: const Color(0xFF8B5CF6), // purple
+        )),
+        const SizedBox(width: 10),
+        Expanded(
+            child: _SummaryCard(
+          label: 'Absent',
+          value: '${_viewModel.totalAbsent}',
+          icon: Icons.cancel_rounded,
+          color: AppTheme.danger,
         )),
       ],
     );
@@ -176,7 +175,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   // ── Records list ──────────────────────────────────────────────────────────
 
   Widget _buildRecordsList() {
-    if (_viewModel.records.isEmpty) {
+    if (_viewModel.dayRecords.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -184,14 +183,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${_viewModel.records.length} record${_viewModel.records.length == 1 ? '' : 's'}',
+          '${_viewModel.totalWorkingDays} working day${_viewModel.totalWorkingDays == 1 ? '' : 's'}',
           style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppTheme.textMuted),
         ),
         const SizedBox(height: 10),
-        ...(_viewModel.records.map((r) => _AttendanceCard(record: r))),
+        ...(_viewModel.dayRecords.map((r) => _DayCard(record: r))),
       ],
     );
   }
@@ -213,14 +212,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   color: AppTheme.primary, size: 34),
             ),
             const SizedBox(height: 16),
-            const Text('No attendance records',
+            const Text('No working days',
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textDark)),
             const SizedBox(height: 6),
             Text(
-              'No records found for ${DateFormat('MMMM yyyy').format(_viewModel.selectedMonth)}',
+              'No working days found for ${DateFormat('MMMM yyyy').format(_viewModel.selectedMonth)}',
               style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
             ),
           ],
@@ -270,7 +269,7 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -310,28 +309,70 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-// ── Attendance record card ────────────────────────────────────────────────────
+// ── Day card (renders all 5 statuses) ─────────────────────────────────────────
 
-class _AttendanceCard extends StatelessWidget {
-  final AttendanceModel record;
+class _DayCard extends StatelessWidget {
+  final DayRecord record;
+  const _DayCard({required this.record});
 
-  const _AttendanceCard({required this.record});
+  // Status → visual config
+  ({Color color, String label, IconData icon}) _statusConfig() {
+    switch (record.status) {
+      case DayStatus.present:
+        return (
+          color: AppTheme.success,
+          label: 'Present',
+          icon: Icons.check_circle_rounded,
+        );
+      case DayStatus.late:
+        return (
+          color: AppTheme.warning,
+          label: 'Late',
+          icon: Icons.schedule_rounded,
+        );
+      case DayStatus.onLeave:
+        return (
+          color: const Color(0xFF8B5CF6),
+          label: 'On Leave',
+          icon: Icons.beach_access_rounded,
+        );
+      case DayStatus.absent:
+        return (
+          color: AppTheme.danger,
+          label: 'Absent',
+          icon: Icons.cancel_rounded,
+        );
+      case DayStatus.upcoming:
+        return (
+          color: AppTheme.textMuted,
+          label: 'Upcoming',
+          icon: Icons.event_rounded,
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final cfg = _statusConfig();
     final date = record.date;
-    final dayName = DateFormat('EEE').format(date);   // Mon
-    final dayNum = DateFormat('dd').format(date);     // 12
-    final monthYear = DateFormat('MMM yyyy').format(date); // Apr 2026
+    final dayName = DateFormat('EEE').format(date); // Mon
+    final dayNum = DateFormat('dd').format(date);   // 12
+    final monthYear = DateFormat('MMM yyyy').format(date);
 
-    final isLate = record.status == 'late';
-    final isWfh = record.type == 'wfh';
+    final isMuted = record.status == DayStatus.upcoming;
+    final isAbsent = record.status == DayStatus.absent;
+    final isLeave = record.status == DayStatus.onLeave;
+    final att = record.attendance;
+    final hasAttendance = att != null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: isAbsent
+            ? Border.all(color: AppTheme.danger.withValues(alpha: 0.25))
+            : null,
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -343,29 +384,35 @@ class _AttendanceCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            // Date block
+            // ── Date block ──
             Container(
               width: 50,
               height: 56,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.secondary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: isMuted
+                    ? null
+                    : LinearGradient(
+                        colors: [
+                          cfg.color,
+                          cfg.color.withValues(alpha: 0.75),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                color: isMuted ? const Color(0xFFF3F4F6) : null,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(dayName,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: isMuted ? AppTheme.textMuted : Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.w600)),
                   Text(dayNum,
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: isMuted ? AppTheme.textMuted : Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.w800)),
                 ],
@@ -373,7 +420,7 @@ class _AttendanceCard extends StatelessWidget {
             ),
             const SizedBox(width: 14),
 
-            // Main info
+            // ── Main info ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,67 +428,56 @@ class _AttendanceCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(monthYear,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: AppTheme.textDark)),
+                              color: isMuted
+                                  ? AppTheme.textMuted
+                                  : AppTheme.textDark)),
                       const SizedBox(width: 8),
-                      // Status badge
-                      _Badge(
-                        label: isLate ? 'Late' : 'Present',
-                        color: isLate ? AppTheme.warning : AppTheme.success,
-                      ),
-                      const SizedBox(width: 4),
-                      // Type badge
-                      _Badge(
-                        label: isWfh ? 'WFH' : 'Office',
-                        color: isWfh ? AppTheme.secondary : AppTheme.primary,
-                      ),
+                      _Badge(label: cfg.label, color: cfg.color, icon: cfg.icon),
+                      if (hasAttendance && att.type == 'wfh') ...[
+                        const SizedBox(width: 4),
+                        _Badge(
+                          label: 'WFH',
+                          color: AppTheme.secondary,
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      _TimeChip(
-                        icon: Icons.login_rounded,
-                        label: record.clockIn != null
-                            ? DateFormat('hh:mm a').format(record.clockIn!)
-                            : '-',
-                        color: AppTheme.success,
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward_rounded,
-                          size: 12, color: AppTheme.textMuted),
-                      const SizedBox(width: 8),
-                      _TimeChip(
-                        icon: Icons.logout_rounded,
-                        label: record.clockOut != null
-                            ? DateFormat('hh:mm a').format(record.clockOut!)
-                            : 'Working...',
-                        color: record.clockOut != null
-                            ? AppTheme.danger
-                            : AppTheme.warning,
-                      ),
-                    ],
-                  ),
+                  _buildSubRow(),
                 ],
               ),
             ),
 
-            // Duration
-            if (record.duration != null)
+            // ── Right-side info (duration or half day) ──
+            if (hasAttendance && att.duration != null)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Text('Duration',
                       style: TextStyle(
-                          fontSize: 10,
-                          color: AppTheme.textMuted)),
-                  Text(record.durationText,
+                          fontSize: 10, color: AppTheme.textMuted)),
+                  Text(att.durationText,
                       style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textDark)),
+                ],
+              )
+            else if (isLeave && record.isHalfDay)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text('Half day',
+                      style: TextStyle(
+                          fontSize: 10, color: AppTheme.textMuted)),
+                  Text(record.halfDayPeriod ?? '-',
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF8B5CF6))),
                 ],
               ),
           ],
@@ -449,13 +485,73 @@ class _AttendanceCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildSubRow() {
+    final att = record.attendance;
+    switch (record.status) {
+      case DayStatus.present:
+      case DayStatus.late:
+        return Row(
+          children: [
+            _TimeChip(
+              icon: Icons.login_rounded,
+              label: att?.clockIn != null
+                  ? DateFormat('hh:mm a').format(att!.clockIn!)
+                  : '-',
+              color: AppTheme.success,
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward_rounded,
+                size: 12, color: AppTheme.textMuted),
+            const SizedBox(width: 8),
+            _TimeChip(
+              icon: Icons.logout_rounded,
+              label: att?.clockOut != null
+                  ? DateFormat('hh:mm a').format(att!.clockOut!)
+                  : 'Working...',
+              color: att?.clockOut != null
+                  ? AppTheme.danger
+                  : AppTheme.warning,
+            ),
+          ],
+        );
+
+      case DayStatus.onLeave:
+        return Text(
+          record.leaveTypeName ?? 'Leave',
+          style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF8B5CF6)),
+        );
+
+      case DayStatus.absent:
+        return const Text(
+          'No clock-in recorded',
+          style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.danger),
+        );
+
+      case DayStatus.upcoming:
+        return const Text(
+          'Scheduled working day',
+          style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textMuted),
+        );
+    }
+  }
 }
 
 class _Badge extends StatelessWidget {
   final String label;
   final Color color;
+  final IconData? icon;
 
-  const _Badge({required this.label, required this.color});
+  const _Badge({required this.label, required this.color, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -465,11 +561,20 @@ class _Badge extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: color)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 10, color: color),
+            const SizedBox(width: 3),
+          ],
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: color)),
+        ],
+      ),
     );
   }
 }
@@ -489,7 +594,7 @@ class _TimeChip extends StatelessWidget {
         Icon(icon, size: 12, color: color),
         const SizedBox(width: 3),
         Text(label,
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textDark)),

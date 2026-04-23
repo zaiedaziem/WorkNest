@@ -95,4 +95,25 @@ class AttendanceService {
 
     return (data as List).map((e) => AttendanceModel.fromMap(e)).toList();
   }
+
+  // Get approved leaves that overlap a specific month
+  // Returns a list of maps: { 'start_date', 'end_date', 'policy_name',
+  // 'is_half_day', 'half_day_period' }
+  Future<List<Map<String, dynamic>>> getApprovedLeavesForMonth(
+      String employeeId, int year, int month) async {
+    final from = DateTime(year, month, 1).toIso8601String().substring(0, 10);
+    final to = DateTime(year, month + 1, 0).toIso8601String().substring(0, 10);
+
+    // Any leave where start <= monthEnd AND end >= monthStart
+    final data = await _supabase
+        .from('leave_requests')
+        .select('start_date, end_date, is_half_day, half_day_period, '
+            'leave_policies(name)')
+        .eq('employee_id', employeeId)
+        .eq('status', 'approved')
+        .lte('start_date', to)
+        .gte('end_date', from);
+
+    return (data as List).cast<Map<String, dynamic>>();
+  }
 }
