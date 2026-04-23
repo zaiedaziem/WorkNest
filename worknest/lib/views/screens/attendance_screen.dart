@@ -125,7 +125,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       ),
       (
         filter: DayFilter.onLeave,
-        label: 'On Leave',
+        label: 'Leave',
         count: _viewModel.totalOnLeave,
         color: const Color(0xFF8B5CF6),
       ),
@@ -137,23 +137,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       ),
     ];
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          for (final c in chips) ...[
-            _FilterChip(
-              label: c.label,
-              count: c.count,
-              color: c.color,
-              isSelected: _viewModel.filter == c.filter,
-              onTap: () => _viewModel.setFilter(c.filter),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ],
-      ),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final c in chips)
+          _FilterChip(
+            label: c.label,
+            count: c.count,
+            color: c.color,
+            isSelected: _viewModel.filter == c.filter,
+            onTap: () => _viewModel.setFilter(c.filter),
+          ),
+      ],
     );
   }
 
@@ -871,19 +867,21 @@ class _FilterChip extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Container(
+              constraints: const BoxConstraints(minWidth: 20),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Colors.white.withValues(alpha: 0.25)
+                    ? Colors.white
                     : color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 '$count',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : color,
+                  color: color,
                 ),
               ),
             ),
