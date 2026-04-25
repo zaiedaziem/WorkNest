@@ -704,11 +704,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.business_rounded,
                 label: 'Company',
                 value: widget.company.name),
-            if (widget.user.email != null)
-              _ProfileRow(
-                  icon: Icons.email_rounded,
-                  label: 'Email',
-                  value: widget.user.email!),
+            _ProfileRow(
+                icon: Icons.email_rounded,
+                label: 'Email',
+                value: widget.user.email ?? '—',
+                note: 'Contact HR to change'),
             const SizedBox(height: 8),
             const Divider(),
             ListTile(
@@ -1002,27 +1002,46 @@ class _ProfileRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _ProfileRow(
-      {required this.icon, required this.label, required this.value});
+  /// Optional small grey hint shown below the value (e.g. "Contact HR to change").
+  final String? note;
+  const _ProfileRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.note,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: AppTheme.textMuted),
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(icon, size: 16, color: AppTheme.textMuted),
+          ),
           const SizedBox(width: 10),
           Text('$label: ',
               style: const TextStyle(
                   fontSize: 13, color: AppTheme.textMuted)),
           Expanded(
-            child: Text(value,
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark),
-                overflow: TextOverflow.ellipsis),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textDark),
+                    overflow: TextOverflow.ellipsis),
+                if (note != null)
+                  Text(note!,
+                      style: const TextStyle(
+                          fontSize: 11, color: AppTheme.textMuted)),
+              ],
+            ),
           ),
         ],
       ),

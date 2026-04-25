@@ -14,7 +14,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _viewModel = ForgotPasswordViewModel();
 
   // Step 1
-  final _emailController = TextEditingController();
+  final _companyCodeController = TextEditingController();
+  final _employeeIdController = TextEditingController();
 
   // Step 2
   final List<TextEditingController> _otpControllers =
@@ -41,7 +42,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void dispose() {
     _viewModel.removeListener(_onViewModelChanged);
     _viewModel.dispose();
-    _emailController.dispose();
+    _companyCodeController.dispose();
+    _employeeIdController.dispose();
     for (final c in _otpControllers) {
       c.dispose();
     }
@@ -111,7 +113,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  // ── Step 1: Enter email ──────────────────────────────────────────────────
+  // ── Step 1: Enter Company Code + Employee ID ─────────────────────────────
 
   Widget _buildStep1({Key? key}) {
     return Column(
@@ -123,7 +125,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           icon: Icons.lock_reset_rounded,
           title: 'Forgot Password?',
           subtitle:
-              'Enter your registered email address and we\'ll send you a 6-digit reset code.',
+              'Enter your Company Code and Employee ID. We\'ll send a 6-digit reset code to the email linked to your account.',
         ),
         const SizedBox(height: 32),
 
@@ -132,16 +134,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           const SizedBox(height: 16),
         ],
 
-        const _FieldLabel('Email Address'),
+        const _FieldLabel('Company Code'),
         const SizedBox(height: 8),
         TextField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
+          controller: _companyCodeController,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.none,
+          decoration: const InputDecoration(
+            hintText: 'e.g. acme',
+            prefixIcon:
+                Icon(Icons.business_rounded, color: AppTheme.textMuted),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        const _FieldLabel('Employee ID'),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _employeeIdController,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _submitStep1(),
           decoration: const InputDecoration(
-            hintText: 'e.g. john@company.com',
-            prefixIcon: Icon(Icons.email_rounded, color: AppTheme.textMuted),
+            hintText: 'e.g. EMP001',
+            prefixIcon: Icon(Icons.badge_rounded, color: AppTheme.textMuted),
           ),
         ),
 
@@ -163,9 +179,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _submitStep1() {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) return;
-    _viewModel.requestOtp(email);
+    final companyCode = _companyCodeController.text.trim();
+    final employeeId = _employeeIdController.text.trim();
+    if (companyCode.isEmpty || employeeId.isEmpty) return;
+    _viewModel.requestOtp(
+      companyCode: companyCode,
+      employeeId: employeeId,
+    );
   }
 
   // ── Step 2: Enter 6-digit OTP ────────────────────────────────────────────
@@ -180,7 +200,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           icon: Icons.mark_email_read_rounded,
           title: 'Check Your Email',
           subtitle:
-              'We\'ve sent a 6-digit code to ${_viewModel.email}. Enter it below.',
+              'We\'ve sent a 6-digit code to ${_viewModel.maskedEmail}. Enter it below.',
         ),
         const SizedBox(height: 32),
 

@@ -69,6 +69,45 @@ class AuthService {
     }
   }
 
+  // ── Forgot password: Look up email by Company Code + Employee ID ──────────
+  // Sends OTP to the looked-up email and returns that email (so the
+  // ViewModel can show a masked version at Step 2).
+  Future<String> sendOtpByCredentials({
+    required String companyCode,
+    required String employeeId,
+  }) async {
+    // 1. Find company
+    final companyData = await _supabase
+        .from('companies')
+        .select('id')
+        .eq('company_code', companyCode.toLowerCase().trim())
+        .eq('is_active', true)
+        .maybeSingle();
+
+    if (companyData == null) throw Exception('Company not found.');
+
+    // 2. Find employee by company + employee_id
+    final userData = await _supabase
+        .from('users')
+        .select('email')
+        .eq('company_id', companyData['id'])
+        .eq('employee_id', employeeId.trim())
+        .eq('role', 'employee')
+        .eq('is_active', true)
+        .maybeSingle();
+
+    if (userData == null) throw Exception('Employee ID not found.');
+
+    final email = userData['email'] as String?;
+    if (email == null || email.isEmpty) {
+      throw Exception('No email linked to this account. Contact your HR.');
+    }
+
+    // 3. Send OTP to that email
+    await sendOtp(email);
+    return email;
+  }
+
   // ── Forgot password: Step 2 — verify OTP (signs user in) ──────────────────
   Future<void> verifyOtp(String email, String otpCode) async {
     try {
