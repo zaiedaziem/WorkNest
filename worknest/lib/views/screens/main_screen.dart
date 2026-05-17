@@ -41,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
           AttendanceScreen(user: widget.user),
           LeaveScreen(user: widget.user, company: widget.company),
-          ClaimsScreen(user: widget.user),
+          ClaimsScreen(user: widget.user, company: widget.company),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(),
