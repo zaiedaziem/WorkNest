@@ -252,8 +252,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  /// Group day records by ISO week (Mon–Sun). Weeks are returned in the same
-  /// order as the input (already sorted most-recent-first).
+  /// Group day records by ISO week (Mon–Sun). Weeks and days within each week
+  /// are sorted chronologically (Day 1 → end of month).
   List<_WeekGroup> _groupByWeek(List<DayRecord> records) {
     final byMonday = <DateTime, List<DayRecord>>{};
 
@@ -264,14 +264,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       byMonday.putIfAbsent(mondayOnly, () => []).add(r);
     }
 
-    // Sort weeks newest first (by Monday desc)
+    // Sort weeks oldest first (by Monday asc)
     final mondays = byMonday.keys.toList()
-      ..sort((a, b) => b.compareTo(a));
+      ..sort((a, b) => a.compareTo(b));
 
     return mondays.map((m) {
       final days = byMonday[m]!;
-      // Ensure days within a week are newest first
-      days.sort((a, b) => b.date.compareTo(a.date));
+      // Ensure days within a week are oldest first
+      days.sort((a, b) => a.date.compareTo(b.date));
 
       int present = 0;
       int late = 0;
@@ -294,6 +294,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             absent++;
             break;
           case DayStatus.upcoming:
+          case DayStatus.weekend:
             break;
         }
         final dur = d.attendance?.duration;
@@ -559,11 +560,69 @@ class _DayCard extends StatelessWidget {
           label: 'Upcoming',
           icon: Icons.event_rounded,
         );
+      case DayStatus.weekend:
+        return (
+          color: const Color(0xFFCBD5E1),
+          label: 'Weekend',
+          icon: Icons.weekend_rounded,
+        );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isWeekend = record.status == DayStatus.weekend;
+
+    // ── Weekend card — compact, grey, no click targets ──
+    if (isWeekend) {
+      final date = record.date;
+      final dayName = DateFormat('EEE').format(date); // Sat / Sun
+      final dayNum  = DateFormat('d').format(date);
+      return Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE9EEF3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE9EEF3),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(dayName,
+                      style: const TextStyle(
+                          color: Color(0xFF94A3B8), fontSize: 10,
+                          fontWeight: FontWeight.w600)),
+                  Text(dayNum,
+                      style: const TextStyle(
+                          color: Color(0xFF94A3B8), fontSize: 16,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Icon(Icons.weekend_rounded,
+                size: 14, color: Color(0xFFCBD5E1)),
+            const SizedBox(width: 6),
+            const Text('Weekend',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF94A3B8))),
+          ],
+        ),
+      );
+    }
+
     final cfg = _statusConfig();
     final date = record.date;
     final dayName = DateFormat('EEE').format(date); // Mon
@@ -753,6 +812,9 @@ class _DayCard extends StatelessWidget {
               fontWeight: FontWeight.w500,
               color: AppTheme.textMuted),
         );
+
+      case DayStatus.weekend:
+        return const SizedBox.shrink();
     }
   }
 }
@@ -920,13 +982,13 @@ class _WeekHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Working-week range: Monday to Friday
-    final friday = group.monday.add(const Duration(days: 4));
+    // Full week range: Monday to Sunday
+    final sunday = group.monday.add(const Duration(days: 6));
 
-    final sameMonth = group.monday.month == friday.month;
+    final sameMonth = group.monday.month == sunday.month;
     final rangeLabel = sameMonth
-        ? '${DateFormat('d').format(group.monday)} – ${DateFormat('d MMM').format(friday)}'
-        : '${DateFormat('d MMM').format(group.monday)} – ${DateFormat('d MMM').format(friday)}';
+        ? '${DateFormat('d').format(group.monday)} – ${DateFormat('d MMM').format(sunday)}'
+        : '${DateFormat('d MMM').format(group.monday)} – ${DateFormat('d MMM').format(sunday)}';
 
     final h = group.hoursWorked.inHours;
     final m = group.hoursWorked.inMinutes.remainder(60);

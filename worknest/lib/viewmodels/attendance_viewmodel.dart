@@ -3,7 +3,7 @@ import '../models/attendance_model.dart';
 import '../services/attendance_service.dart';
 
 /// Status of a single working day in the month view.
-enum DayStatus { present, late, onLeave, absent, upcoming }
+enum DayStatus { present, late, onLeave, absent, upcoming, weekend }
 
 /// Filter options shown as chips above the list.
 enum DayFilter { all, present, late, onLeave, absent }
@@ -51,6 +51,7 @@ class AttendanceViewModel extends ChangeNotifier {
   DayFilter get filter => _filter;
 
   /// Day records filtered by the active chip.
+  /// Weekends are always shown in 'all' view; hidden when a filter is active.
   List<DayRecord> get filteredDayRecords {
     switch (_filter) {
       case DayFilter.all:
@@ -163,8 +164,9 @@ class AttendanceViewModel extends ChangeNotifier {
     }
   }
 
-  /// Generate one DayRecord per working day (Mon–Fri) in the selected month.
-  /// Most-recent day first (matches existing UX).
+  /// Generate one DayRecord per calendar day in the selected month.
+  /// Weekends are included with DayStatus.weekend.
+  /// Days are ordered Day 1 → end of month (chronological).
   List<DayRecord> _buildDayRecords(
     List<AttendanceModel> attendance,
     List<Map<String, dynamic>> leaves,
@@ -186,26 +188,17 @@ class AttendanceViewModel extends ChangeNotifier {
     for (int d = 1; d <= lastDay; d++) {
       final day = DateTime(year, month, d);
 
-      // Skip weekends
+      // Weekend → show as weekend card, no attendance logic
       if (day.weekday == DateTime.saturday ||
           day.weekday == DateTime.sunday) {
+        result.add(DayRecord(date: day, status: DayStatus.weekend));
         continue;
       }
 
       final key = _dateKey(day);
       final att = attByDate[key];
 
-      // 1. Attendance record wins
-      if (att != null) {
-        result.add(DayRecord(
-          date: day,
-          status: att.status == 'late' ? DayStatus.late : DayStatus.present,
-          attendance: att,
-        ));
-        continue;
-      }
-
-      // 2. Approved leave covers this day?
+      // 1. Approved leave wins
       final leave = _findLeaveCovering(day, leaves);
       if (leave != null) {
         result.add(DayRecord(
@@ -215,6 +208,16 @@ class AttendanceViewModel extends ChangeNotifier {
               (leave['leave_policies']?['name'] as String?) ?? 'Leave',
           isHalfDay: leave['is_half_day'] == true,
           halfDayPeriod: leave['half_day_period'] as String?,
+        ));
+        continue;
+      }
+
+      // 2. Attendance record
+      if (att != null) {
+        result.add(DayRecord(
+          date: day,
+          status: att.status == 'late' ? DayStatus.late : DayStatus.present,
+          attendance: att,
         ));
         continue;
       }
@@ -229,8 +232,8 @@ class AttendanceViewModel extends ChangeNotifier {
       result.add(DayRecord(date: day, status: DayStatus.absent));
     }
 
-    // Most recent first
-    result.sort((a, b) => b.date.compareTo(a.date));
+    // Day 1 → end of month (chronological)
+    result.sort((a, b) => a.date.compareTo(b.date));
     return result;
   }
 
