@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -996,14 +998,59 @@ class _SubmitClaimSheetState extends State<_SubmitClaimSheet> {
   }
 
   Future<void> _pickReceipt() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      allowMultiple: false,
-      withData: true,
-    );
-    if (result == null || result.files.isEmpty) return;
-    setState(() => _pickedFile = result.files.first);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        allowMultiple: false,
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final file = result.files.first;
+
+      // On some Android devices the bytes can be null even with withData:true
+      // (e.g. when the picker returns a file:// URI it can't read directly).
+      // Fall back to reading via the path if available.
+      if (file.bytes == null && file.path != null) {
+        try {
+          final bytes = await _readFileBytes(file.path!);
+          setState(() => _pickedFile = PlatformFile(
+            name: file.name,
+            size: bytes.length,
+            bytes: bytes,
+            path: file.path,
+          ));
+          return;
+        } catch (_) {
+          // ignore fallback failure — show error below
+        }
+      }
+
+      if (file.bytes == null) {
+        if (mounted) {
+          setState(() => _submitError =
+              'Could not read the selected file. Please try a different file.');
+        }
+        return;
+      }
+
+      setState(() {
+        _pickedFile = file;
+        _submitError = null; // clear any previous error
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _submitError =
+            'Could not open file picker: ${e.toString().replaceFirst("Exception: ", "")}');
+      }
+    }
+  }
+
+  /// Read raw bytes from a local file path (fallback for file:// URIs on Android).
+  Future<Uint8List> _readFileBytes(String path) async {
+    final file = await File(path).readAsBytes();
+    return file;
   }
 
   Widget _sectionLabel(String text) => Padding(

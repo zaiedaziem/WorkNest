@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/claim_model.dart';
@@ -52,6 +53,7 @@ class ClaimService {
     double? overseasOtherCost,
   }) async {
     await _db.from(_table).insert({
+      'Id':           _uuid(),
       'EmployeeId':   employeeId,
       'CompanyId':    companyId,
       'ClaimType':    claimType,
@@ -117,7 +119,14 @@ class ClaimService {
           );
     } on StorageException catch (e) {
       debugPrint('[ClaimService] Storage error: ${e.message} (status: ${e.statusCode})');
-      throw Exception('Upload failed: ${e.message}');
+      // Give a friendlier message for the most common setup mistake
+      final msg = (e.statusCode == '404' ||
+              (e.message.toLowerCase().contains('not found') ||
+               e.message.toLowerCase().contains('bucket')))
+          ? 'Storage bucket "claim-receipts" not found. '
+            'Please create it in your Supabase project → Storage.'
+          : e.message;
+      throw Exception('Upload failed: $msg');
     }
 
     debugPrint('[ClaimService] Upload done — getting public URL');
@@ -125,6 +134,19 @@ class ClaimService {
     return _db.storage
         .from('claim-receipts')
         .getPublicUrl(storagePath);
+  }
+
+  /// Generate a v4 UUID without an external package.
+  String _uuid() {
+    final rng = Random.secure();
+    final b = List.generate(16, (_) => rng.nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant 1
+    String hex(List<int> bytes) =>
+        bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex(b.sublist(0, 4))}-${hex(b.sublist(4, 6))}-'
+        '${hex(b.sublist(6, 8))}-${hex(b.sublist(8, 10))}-'
+        '${hex(b.sublist(10, 16))}';
   }
 
   String _mimeType(String ext) {
