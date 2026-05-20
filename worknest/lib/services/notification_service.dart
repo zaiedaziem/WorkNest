@@ -49,6 +49,15 @@ class NotificationService {
         .timeout(const Duration(seconds: 15));
   }
 
+  // ── Delete a notification ─────────────────────────────────────────────────
+  Future<void> delete(String id) async {
+    await _db
+        .from(_table)
+        .delete()
+        .eq('Id', id)
+        .timeout(const Duration(seconds: 15));
+  }
+
   // ── Subscribe to new notifications via Supabase Realtime ─────────────────
   RealtimeChannel subscribe(
     String userId,

@@ -83,6 +83,22 @@ class NotificationViewModel extends ChangeNotifier {
     }
   }
 
+  // ── Delete a notification ─────────────────────────────────────────────────
+  Future<void> delete(String id) async {
+    // Optimistic remove
+    final prev = List<NotificationModel>.from(_notifications);
+    _notifications = _notifications.where((n) => n.id != id).toList();
+    notifyListeners();
+
+    try {
+      await _service.delete(id);
+    } catch (_) {
+      // Revert on failure
+      _notifications = prev;
+      notifyListeners();
+    }
+  }
+
   // ── Mark all as read ──────────────────────────────────────────────────────
   Future<void> markAllRead() async {
     if (unreadCount == 0) return;

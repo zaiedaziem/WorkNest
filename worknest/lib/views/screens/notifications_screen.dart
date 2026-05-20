@@ -65,17 +65,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       // Unread section
                       if (vm.unread.isNotEmpty) ...[
                         _sectionHeader('New', vm.unread.length),
-                        ...vm.unread.map((n) => _NotifTile(
+                        ...vm.unread.map((n) => _DismissibleTile(
                               notif: n,
                               onTap: () => _onTap(n),
+                              onDelete: () => _onDelete(n),
                             )),
                       ],
                       // Read section
                       if (vm.read.isNotEmpty) ...[
                         _sectionHeader('Earlier', null),
-                        ...vm.read.map((n) => _NotifTile(
+                        ...vm.read.map((n) => _DismissibleTile(
                               notif: n,
                               onTap: () => _onTap(n),
+                              onDelete: () => _onDelete(n),
                             )),
                       ],
                       const SizedBox(height: 24),
@@ -148,6 +150,152 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _onTap(NotificationModel n) {
     widget.viewModel.markRead(n.id);
     // TODO: navigate to leave/claim screen based on n.refType
+  }
+
+  Future<void> _onDelete(NotificationModel n) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Notification',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        content: const Text('Remove this notification? This cannot be undone.',
+            style: TextStyle(fontSize: 14, color: AppTheme.textMuted)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppTheme.textMuted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete',
+                style: TextStyle(
+                    color: AppTheme.danger, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      widget.viewModel.delete(n.id);
+    }
+  }
+}
+
+// ── Slide-to-reveal delete tile ───────────────────────────────────────────────
+class _DismissibleTile extends StatefulWidget {
+  final NotificationModel notif;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const _DismissibleTile({
+    required this.notif,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  State<_DismissibleTile> createState() => _DismissibleTileState();
+}
+
+class _DismissibleTileState extends State<_DismissibleTile>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _slide;
+  static const double _btnWidth = 72.0;
+  double _dragOffset = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 200));
+    _slide = Tween<double>(begin: 0, end: -_btnWidth)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _onDragUpdate(DragUpdateDetails d) {
+    _dragOffset = (_dragOffset + d.delta.dx).clamp(-_btnWidth, 0);
+    _ctrl.value = (-_dragOffset / _btnWidth).clamp(0.0, 1.0);
+  }
+
+  void _onDragEnd(DragEndDetails d) {
+    if (_ctrl.value > 0.4 || d.velocity.pixelsPerSecond.dx < -300) {
+      _ctrl.forward();
+    } else {
+      _ctrl.reverse();
+    }
+    _dragOffset = _ctrl.value * -_btnWidth;
+  }
+
+  void _close() {
+    _ctrl.reverse();
+    _dragOffset = 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _slide,
+      builder: (_, __) {
+        return Stack(
+          children: [
+            // Red delete button revealed on the right
+            Positioned(
+              right: 16,
+              top: 4,
+              bottom: 4,
+              width: _btnWidth - 8,
+              child: GestureDetector(
+                onTap: () {
+                  _close();
+                  widget.onDelete();
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.danger,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.delete_rounded,
+                          color: Colors.white, size: 22),
+                      SizedBox(height: 2),
+                      Text('Delete',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Tile slides left to reveal the button
+            Transform.translate(
+              offset: Offset(_slide.value, 0),
+              child: GestureDetector(
+                onHorizontalDragUpdate: _onDragUpdate,
+                onHorizontalDragEnd: _onDragEnd,
+                onTap: _ctrl.value > 0.1 ? _close : widget.onTap,
+                child: _NotifTile(
+                  notif: widget.notif,
+                  onTap: _ctrl.value > 0.1 ? _close : widget.onTap,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

@@ -9,6 +9,7 @@ import '../../viewmodels/home_viewmodel.dart';
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
 import '../../widgets/haptic_refresh_indicator.dart';
+import 'ot_request_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -581,10 +582,18 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () => widget.onNavigateToTab?.call(3),
             ),
             _QuickActionCard(
-              icon: Icons.description_rounded,
-              label: 'Payslip\nDocs',
+              icon: Icons.access_time_rounded,
+              label: 'OT\nRequest',
               color: AppTheme.success,
-              onTap: () => _showComingSoon('Payslip Documents'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OtRequestScreen(
+                    user: widget.user,
+                    company: widget.company,
+                  ),
+                ),
+              ),
             ),
             _QuickActionCard(
               icon: Icons.campaign_rounded,
