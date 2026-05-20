@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../models/company_model.dart';
 import '../../theme/app_theme.dart';
+import '../../viewmodels/notification_viewmodel.dart';
 import 'home_screen.dart';
 import 'attendance_screen.dart';
 import 'leave_screen.dart';
 import 'claims_screen.dart';
+import 'notifications_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final UserModel user;
@@ -23,9 +25,37 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  late NotificationViewModel _notifViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifViewModel = NotificationViewModel(userId: widget.user.id);
+    _notifViewModel.addListener(_onNotifChanged);
+  }
+
+  @override
+  void dispose() {
+    _notifViewModel.removeListener(_onNotifChanged);
+    _notifViewModel.dispose();
+    super.dispose();
+  }
+
+  void _onNotifChanged() {
+    if (mounted) setState(() {});
+  }
 
   void _navigateToTab(int index) {
     setState(() => _currentIndex = index);
+  }
+
+  void _openNotifications() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NotificationsScreen(viewModel: _notifViewModel),
+      ),
+    );
   }
 
   @override
@@ -38,6 +68,8 @@ class _MainScreenState extends State<MainScreen> {
             user: widget.user,
             company: widget.company,
             onNavigateToTab: _navigateToTab,
+            unreadNotifCount: _notifViewModel.unreadCount,
+            onNotifTap: _openNotifications,
           ),
           AttendanceScreen(user: widget.user),
           LeaveScreen(user: widget.user, company: widget.company),

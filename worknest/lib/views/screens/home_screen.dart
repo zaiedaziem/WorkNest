@@ -14,12 +14,16 @@ class HomeScreen extends StatefulWidget {
   final UserModel user;
   final CompanyModel company;
   final Function(int)? onNavigateToTab;
+  final int unreadNotifCount;
+  final VoidCallback? onNotifTap;
 
   const HomeScreen({
     super.key,
     required this.user,
     required this.company,
     this.onNavigateToTab,
+    this.unreadNotifCount = 0,
+    this.onNotifTap,
   });
 
   @override
@@ -210,20 +214,72 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                   ],
                 ),
-                // Settings / profile icon
-                GestureDetector(
-                  onTap: _showProfileSheet,
-                  child: CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    child: Text(
-                      widget.user.initials,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16),
+                // Bell + profile icons
+                Row(
+                  children: [
+                    // Bell icon with badge
+                    GestureDetector(
+                      onTap: widget.onNotifTap,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.notifications_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          if (widget.unreadNotifCount > 0)
+                            Positioned(
+                              top: -2,
+                              right: -2,
+                              child: Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFEF4444),
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                    minWidth: 16, minHeight: 16),
+                                child: Text(
+                                  widget.unreadNotifCount > 9
+                                      ? '9+'
+                                      : '${widget.unreadNotifCount}',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    // Profile avatar
+                    GestureDetector(
+                      onTap: _showProfileSheet,
+                      child: CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        child: Text(
+                          widget.user.initials,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
