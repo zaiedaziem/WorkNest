@@ -10,6 +10,8 @@ import '../../services/auth_service.dart';
 import 'login_screen.dart';
 import '../../widgets/haptic_refresh_indicator.dart';
 import 'ot_request_screen.dart';
+import 'payslip_screen.dart';
+import '../../viewmodels/payslip_viewmodel.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -591,6 +593,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (_) => OtRequestScreen(
                     user: widget.user,
                     company: widget.company,
+                  ),
+                ),
+              ),
+            ),
+            _QuickActionCard(
+              icon: Icons.receipt_long_rounded,
+              label: 'My\nPayslip',
+              color: const Color(0xFF0EA5E9),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PayslipScreen(
+                    viewModel: PayslipViewModel(userId: widget.user.id),
                   ),
                 ),
               ),
