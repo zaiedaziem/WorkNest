@@ -144,7 +144,6 @@ class _PayslipCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Month icon
               Container(
                 width: 48, height: 48,
                 decoration: BoxDecoration(
@@ -155,7 +154,6 @@ class _PayslipCard extends StatelessWidget {
                     color: AppTheme.primary, size: 24),
               ),
               const SizedBox(width: 14),
-              // Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +169,6 @@ class _PayslipCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Net Pay
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -213,7 +210,7 @@ class _PayslipDetailSheet extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Handle
+            // Drag handle
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40, height: 4,
@@ -266,6 +263,7 @@ class _PayslipDetailSheet extends StatelessWidget {
                   // ── Earnings ──────────────────────────────────────────────
                   _sectionTitle('EARNINGS'),
                   _row('Basic Salary', payslip.basicSalary),
+                  _row('OT Pay', payslip.otPay),
                   if (payslip.transportAllowance > 0)
                     _row('Transport Allowance', payslip.transportAllowance),
                   if (payslip.mealAllowance > 0)
@@ -274,10 +272,11 @@ class _PayslipDetailSheet extends StatelessWidget {
                     _row('Housing Allowance', payslip.housingAllowance),
                   if (payslip.otherAllowance > 0)
                     _row('Other Allowance', payslip.otherAllowance),
-                  if (payslip.otPay > 0)
-                    _row('OT Pay', payslip.otPay, color: AppTheme.success),
+                  if (payslip.claimsTotal > 0)
+                    _row('Claims Reimbursement', payslip.claimsTotal,
+                        color: AppTheme.success),
                   _divider(),
-                  _row('Gross Pay', payslip.grossPay,
+                  _row('Total Earnings', payslip.totalEarnings,
                       bold: true, color: AppTheme.primary),
                   const SizedBox(height: 16),
 
@@ -296,14 +295,6 @@ class _PayslipDetailSheet extends StatelessWidget {
                   _row('Total Deductions', payslip.totalDeductions,
                       bold: true, isDeduction: true),
                   const SizedBox(height: 16),
-
-                  // ── Claims ────────────────────────────────────────────────
-                  if (payslip.claimsTotal > 0) ...[
-                    _sectionTitle('REIMBURSEMENTS'),
-                    _row('Claims Reimbursement', payslip.claimsTotal,
-                        color: AppTheme.success),
-                    const SizedBox(height: 16),
-                  ],
 
                   // ── Remarks ───────────────────────────────────────────────
                   if (payslip.hrRemarks != null &&
@@ -343,7 +334,7 @@ class _PayslipDetailSheet extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('NET PAY',
+                        const Text('NETT PAY',
                             style: TextStyle(
                                 fontSize: 14, fontWeight: FontWeight.w700,
                                 color: AppTheme.success, letterSpacing: 0.5)),
@@ -407,117 +398,338 @@ class _PayslipDetailSheet extends StatelessWidget {
         child: Divider(color: Color(0xFFE5E7EB)),
       );
 
+  // ── PDF Generation ─────────────────────────────────────────────────────────
   Future<void> _downloadPdf(BuildContext context) async {
     final doc = pw.Document();
+    final p = payslip;
+    final now = DateTime.now();
+    final paymentDate =
+        '${now.day.toString().padLeft(2, '0')}-${_monthAbbr(now.month)}-${now.year}';
+
+    const border = pw.BorderSide(color: PdfColors.black, width: 0.75);
+    const thinBorder = pw.BorderSide(color: PdfColors.black, width: 0.5);
+
+    // ── Table cell helpers ────────────────────────────────────────────────
+    pw.Widget _cell(String text,
+        {bool bold = false,
+        bool rightAlign = false,
+        pw.EdgeInsets? padding,
+        double fontSize = 9}) {
+      return pw.Container(
+        padding: padding ??
+            const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        alignment: rightAlign ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
+        child: pw.Text(
+          text,
+          style: pw.TextStyle(
+            fontSize: fontSize,
+            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          ),
+        ),
+      );
+    }
+
+    // Info pair row inside the employee box
+    pw.Widget _infoPair(String label, String value, double labelWidth) {
+      return pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 1.5),
+        child: pw.Row(children: [
+          pw.SizedBox(width: labelWidth,
+              child: pw.Text(label, style: const pw.TextStyle(fontSize: 8.5))),
+          pw.Text(':  ', style: const pw.TextStyle(fontSize: 8.5)),
+          pw.Expanded(
+              child: pw.Text(value, style: const pw.TextStyle(fontSize: 8.5))),
+        ]),
+      );
+    }
+
+    // Build table rows list
+    final List<pw.TableRow> tableRows = [];
+
+    // Header row
+    tableRows.add(pw.TableRow(
+      decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFF0F0F0)),
+      children: [
+        _cell('DESCRIPTION', bold: true,
+            padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5)),
+        _cell('EARNINGS', bold: true, rightAlign: true,
+            padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5)),
+        _cell('DEDUCTIONS', bold: true, rightAlign: true,
+            padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5)),
+      ],
+    ));
+
+    // Data row helper
+    pw.TableRow _dataRow(String desc, double? earning, double? deduction) {
+      return pw.TableRow(children: [
+        _cell(desc),
+        _cell(earning != null ? earning.toStringAsFixed(2) : '',
+            rightAlign: true),
+        _cell(deduction != null ? deduction.toStringAsFixed(2) : '',
+            rightAlign: true),
+      ]);
+    }
+
+    // Earnings rows
+    tableRows.add(_dataRow('BASIC SALARY', p.basicSalary, null));
+    tableRows.add(_dataRow('OT', p.otPay, null));
+    if (p.transportAllowance > 0)
+      tableRows.add(_dataRow('TRANSPORT ALLOWANCE', p.transportAllowance, null));
+    if (p.mealAllowance > 0)
+      tableRows.add(_dataRow('MEAL ALLOWANCE', p.mealAllowance, null));
+    if (p.housingAllowance > 0)
+      tableRows.add(_dataRow('HOUSING ALLOWANCE', p.housingAllowance, null));
+    if (p.otherAllowance > 0)
+      tableRows.add(_dataRow('OTHER ALLOWANCE', p.otherAllowance, null));
+    if (p.claimsTotal > 0)
+      tableRows.add(_dataRow('CLAIMS REIMBURSEMENT', p.claimsTotal, null));
+
+    // Spacer
+    tableRows.add(_dataRow('', null, null));
+
+    // Deduction rows
+    tableRows.add(_dataRow('EPF', null, p.epfEmployee));
+    tableRows.add(_dataRow('SOCSO', null, p.socsoEmployee));
+    tableRows.add(_dataRow('EIS', null, p.eisEmployee));
+    if (p.attendanceDeduction > 0)
+      tableRows.add(_dataRow('ATTENDANCE DEDUCTION', null, p.attendanceDeduction));
+
+    // Remarks row
+    if (p.hrRemarks != null && p.hrRemarks!.isNotEmpty) {
+      tableRows.add(pw.TableRow(children: [
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          child: pw.Text('Remarks : ${p.hrRemarks}',
+              style: pw.TextStyle(
+                  fontSize: 8,
+                  fontStyle: pw.FontStyle.italic,
+                  color: PdfColors.grey600)),
+        ),
+        pw.Container(),
+        pw.Container(),
+      ]));
+    }
 
     doc.addPage(pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(40),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 35, vertical: 30),
       build: (pw.Context ctx) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          // Header
+          // ── 1. Company Header ──────────────────────────────────────────
           pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text('PAYSLIP',
-                      style: pw.TextStyle(
-                          fontSize: 20, fontWeight: pw.FontWeight.bold,
-                          color: const PdfColor.fromInt(0xFF4f46e5))),
-                  pw.Text(payslip.monthName,
-                      style: const pw.TextStyle(fontSize: 13)),
-                ],
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.RichText(
+                      text: pw.TextSpan(children: [
+                        pw.TextSpan(
+                          text: p.companyName.isNotEmpty
+                              ? p.companyName
+                              : 'Company',
+                          style: pw.TextStyle(
+                              fontSize: 13, fontWeight: pw.FontWeight.bold),
+                        ),
+                      ]),
+                    ),
+                    if (p.companyAddress.isNotEmpty) ...[
+                      pw.SizedBox(height: 2),
+                      pw.Text(p.companyAddress,
+                          style: const pw.TextStyle(fontSize: 8)),
+                    ],
+                    if (p.companyPhone.isNotEmpty || p.companyEmail.isNotEmpty) ...[
+                      pw.Text(
+                        [
+                          if (p.companyPhone.isNotEmpty)
+                            'Tel : ${p.companyPhone}',
+                          if (p.companyEmail.isNotEmpty)
+                            'Email : ${p.companyEmail}',
+                        ].join(' / '),
+                        style: const pw.TextStyle(fontSize: 8),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              pw.Text(
-                'Generated: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                style: const pw.TextStyle(fontSize: 10),
+              pw.RichText(
+                text: pw.TextSpan(children: [
+                  const pw.TextSpan(
+                      text: 'Payslip For   ',
+                      style: pw.TextStyle(fontSize: 9)),
+                  pw.TextSpan(
+                      text: p.monthShort,
+                      style: pw.TextStyle(
+                          fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                ]),
               ),
             ],
           ),
-          pw.Divider(),
 
-          // Earnings
-          pw.SizedBox(height: 8),
-          pw.Text('EARNINGS',
-              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold,
-                  color: const PdfColor.fromInt(0xFF6b7280))),
+          pw.SizedBox(height: 5),
+          pw.Divider(thickness: 0.75, color: PdfColors.black),
           pw.SizedBox(height: 6),
-          _pdfRow('Basic Salary', payslip.basicSalary),
-          if (payslip.transportAllowance > 0)
-            _pdfRow('Transport Allowance', payslip.transportAllowance),
-          if (payslip.mealAllowance > 0)
-            _pdfRow('Meal Allowance', payslip.mealAllowance),
-          if (payslip.housingAllowance > 0)
-            _pdfRow('Housing Allowance', payslip.housingAllowance),
-          if (payslip.otherAllowance > 0)
-            _pdfRow('Other Allowance', payslip.otherAllowance),
-          if (payslip.otPay > 0) _pdfRow('OT Pay', payslip.otPay),
-          pw.Divider(),
-          _pdfRow('GROSS PAY', payslip.grossPay, bold: true),
 
-          // Deductions
+          // ── 2. Employee Info Box ───────────────────────────────────────
+          pw.Table(
+            border: pw.TableBorder.all(color: PdfColors.black, width: 0.75),
+            columnWidths: const {
+              0: pw.FlexColumnWidth(5),
+              1: pw.FlexColumnWidth(3),
+              2: pw.FlexColumnWidth(4),
+            },
+            children: [
+              pw.TableRow(children: [
+                // Left cell
+                pw.Padding(
+                  padding: const pw.EdgeInsets.all(7),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _infoPair('NAME',
+                          p.empName.isNotEmpty ? p.empName : '-', 78),
+                      _infoPair('IC / PASSPORT', '-', 78),
+                      _infoPair('BANK A/C NO.', '-', 78),
+                    ],
+                  ),
+                ),
+                // Middle cell
+                pw.Padding(
+                  padding: const pw.EdgeInsets.all(7),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _infoPair('EMP ID', p.empIdStr, 50),
+                      _infoPair('DEPT', '-', 50),
+                      _infoPair('BANK', '-', 50),
+                    ],
+                  ),
+                ),
+                // Right cell
+                pw.Padding(
+                  padding: const pw.EdgeInsets.all(7),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _infoPair('PAYMENT DATE', paymentDate, 88),
+                      _infoPair('PAY BY', '-', 88),
+                    ],
+                  ),
+                ),
+              ]),
+            ],
+          ),
+
           pw.SizedBox(height: 12),
-          pw.Text('DEDUCTIONS',
-              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold,
-                  color: const PdfColor.fromInt(0xFF6b7280))),
-          pw.SizedBox(height: 6),
-          _pdfRow('EPF - 11% of Basic (KWSP)', payslip.epfEmployee, isDeduction: true),
-          _pdfRow('SOCSO - 0.5% of Gross',     payslip.socsoEmployee, isDeduction: true),
-          _pdfRow('EIS - 0.2% of Gross',       payslip.eisEmployee,   isDeduction: true),
-          if (payslip.attendanceDeduction > 0)
-            _pdfRow('Attendance Deduction', payslip.attendanceDeduction, isDeduction: true),
-          pw.Divider(),
-          _pdfRow('TOTAL DEDUCTIONS', payslip.totalDeductions, bold: true, isDeduction: true),
 
-          // Claims
-          if (payslip.claimsTotal > 0) ...[
-            pw.SizedBox(height: 12),
-            pw.Text('REIMBURSEMENTS',
-                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold,
-                    color: const PdfColor.fromInt(0xFF6b7280))),
-            pw.SizedBox(height: 6),
-            _pdfRow('Claims Reimbursement', payslip.claimsTotal),
-          ],
+          // ── 3. Main Payslip Table ──────────────────────────────────────
+          pw.Table(
+            border: pw.TableBorder(
+              top: border,
+              bottom: thinBorder,
+              left: border,
+              right: border,
+              horizontalInside: thinBorder,
+              verticalInside: border,
+            ),
+            columnWidths: const {
+              0: pw.FlexColumnWidth(5),
+              1: pw.FlexColumnWidth(3),
+              2: pw.FlexColumnWidth(3),
+            },
+            children: tableRows,
+          ),
 
-          // Remarks
-          if (payslip.hrRemarks != null && payslip.hrRemarks!.isNotEmpty) ...[
-            pw.SizedBox(height: 12),
-            pw.Text('Remarks: ${payslip.hrRemarks}',
-                style: const pw.TextStyle(fontSize: 10)),
-          ],
-
-          // Net Pay
-          pw.SizedBox(height: 16),
+          // ── 4. Totals bar (outside table, joined at bottom) ────────────
           pw.Container(
-            padding: const pw.EdgeInsets.all(16),
-            decoration: pw.BoxDecoration(
-              color: const PdfColor.fromInt(0xFFf0fdf4),
-              border: pw.Border.all(color: const PdfColor.fromInt(0xFF16a34a)),
-              borderRadius: pw.BorderRadius.circular(8),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                left:   border,
+                right:  border,
+                bottom: border,
+              ),
             ),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text('NET PAY',
-                    style: pw.TextStyle(
-                        fontSize: 14, fontWeight: pw.FontWeight.bold,
-                        color: const PdfColor.fromInt(0xFF16a34a))),
-                pw.Text('RM ${payslip.netPay.toStringAsFixed(2)}',
-                    style: pw.TextStyle(
-                        fontSize: 18, fontWeight: pw.FontWeight.bold,
-                        color: const PdfColor.fromInt(0xFF16a34a))),
-              ],
-            ),
+            child: pw.Column(children: [
+              // Top separator line
+              pw.Container(height: 0.75, color: PdfColors.black),
+
+              // TOTAL EARNINGS / TOTAL DEDUCTIONS row
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 5),
+                child: pw.Row(children: [
+                  pw.Expanded(
+                    child: pw.RichText(
+                      text: pw.TextSpan(children: [
+                        pw.TextSpan(
+                            text: 'TOTAL EARNINGS',
+                            style: pw.TextStyle(
+                                fontSize: 9,
+                                fontWeight: pw.FontWeight.bold)),
+                        pw.TextSpan(
+                            text:
+                                '          ${p.totalEarnings.toStringAsFixed(2)}',
+                            style: const pw.TextStyle(fontSize: 9)),
+                      ]),
+                    ),
+                  ),
+                  pw.RichText(
+                    text: pw.TextSpan(children: [
+                      pw.TextSpan(
+                          text: 'TOTAL DEDUCTIONS',
+                          style: pw.TextStyle(
+                              fontSize: 9,
+                              fontWeight: pw.FontWeight.bold)),
+                      pw.TextSpan(
+                          text:
+                              '          ${p.totalDeductions.toStringAsFixed(2)}',
+                          style: const pw.TextStyle(fontSize: 9)),
+                    ]),
+                  ),
+                ]),
+              ),
+
+              // Thin separator
+              pw.Container(height: 0.5, color: PdfColors.grey400),
+
+              // NETT PAY row
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 6),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.end,
+                  children: [
+                    pw.RichText(
+                      text: pw.TextSpan(children: [
+                        pw.TextSpan(
+                            text: 'NETT PAY',
+                            style: pw.TextStyle(
+                                fontSize: 11,
+                                fontWeight: pw.FontWeight.bold)),
+                        pw.TextSpan(
+                            text:
+                                '          RM ${p.netPay.toStringAsFixed(2)}',
+                            style: pw.TextStyle(
+                                fontSize: 13,
+                                fontWeight: pw.FontWeight.bold)),
+                      ]),
+                    ),
+                  ],
+                ),
+              ),
+            ]),
           ),
 
           pw.Spacer(),
-          pw.Divider(),
+
+          // ── 5. Footer ──────────────────────────────────────────────────
+          pw.Divider(thickness: 0.5, color: PdfColors.grey400),
+          pw.SizedBox(height: 4),
           pw.Text(
             'This is a computer-generated payslip and does not require a signature.',
-            style: const pw.TextStyle(fontSize: 8),
+            style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600),
           ),
         ],
       ),
@@ -525,31 +737,13 @@ class _PayslipDetailSheet extends StatelessWidget {
 
     await Printing.sharePdf(
       bytes: await doc.save(),
-      filename: 'Payslip_${payslip.monthName.replaceAll(' ', '_')}.pdf',
+      filename: 'Payslip_${p.monthName.replaceAll(' ', '_')}.pdf',
     );
   }
 
-  pw.Widget _pdfRow(String label, double amount,
-      {bool bold = false, bool isDeduction = false}) {
-    final prefix = isDeduction ? '- RM ' : 'RM ';
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 3),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Text(label,
-              style: pw.TextStyle(
-                  fontSize: 10,
-                  fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal)),
-          pw.Text('$prefix${amount.toStringAsFixed(2)}',
-              style: pw.TextStyle(
-                  fontSize: 10,
-                  fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-                  color: isDeduction
-                      ? const PdfColor.fromInt(0xFFef4444)
-                      : PdfColors.black)),
-        ],
-      ),
-    );
+  String _monthAbbr(int m) {
+    const abbr = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return abbr[m];
   }
 }

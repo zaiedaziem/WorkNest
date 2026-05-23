@@ -19,6 +19,14 @@ class PayslipModel {
   final String status;
   final String? hrRemarks;
 
+  // Employee & company info (populated by service)
+  final String empName;
+  final String empIdStr;
+  final String companyName;
+  final String companyAddress;
+  final String companyPhone;
+  final String companyEmail;
+
   PayslipModel({
     required this.id,
     required this.year,
@@ -39,9 +47,23 @@ class PayslipModel {
     required this.netPay,
     required this.status,
     this.hrRemarks,
+    this.empName = '',
+    this.empIdStr = '-',
+    this.companyName = '',
+    this.companyAddress = '',
+    this.companyPhone = '',
+    this.companyEmail = '',
   });
 
-  factory PayslipModel.fromMap(Map<String, dynamic> m) {
+  factory PayslipModel.fromMap(
+    Map<String, dynamic> m, {
+    String empName = '',
+    String empIdStr = '-',
+    String companyName = '',
+    String companyAddress = '',
+    String companyPhone = '',
+    String companyEmail = '',
+  }) {
     double d(String key) =>
         (m[key] ?? m[key.toLowerCase()] ?? 0).toDouble();
 
@@ -65,6 +87,12 @@ class PayslipModel {
       netPay:              d('NetPay'),
       status:              m['Status']?.toString() ?? m['status']?.toString() ?? '',
       hrRemarks:           m['HrRemarks']?.toString() ?? m['hr_remarks']?.toString(),
+      empName:             empName,
+      empIdStr:            empIdStr,
+      companyName:         companyName,
+      companyAddress:      companyAddress,
+      companyPhone:        companyPhone,
+      companyEmail:        companyEmail,
     );
   }
 
@@ -76,6 +104,16 @@ class PayslipModel {
     return '${months[month]} $year';
   }
 
+  String get monthShort {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[month]} $year';
+  }
+
   double get allowanceTotal =>
       transportAllowance + mealAllowance + housingAllowance + otherAllowance;
+
+  double get totalEarnings => grossPay + claimsTotal;
 }
