@@ -38,13 +38,19 @@ class _ChatScreenState extends State<ChatScreen> {
       final reply = await _service.send(text, _history);
       _history.add(ChatMessage(role: 'user', text: text));
       _history.add(ChatMessage(role: 'assistant', text: reply));
-      if (_history.length > 6) _history.removeRange(0, 2); // keep last 3 exchanges
+      if (_history.length > 6)
+        _history.removeRange(0, 2); // keep last 3 exchanges
 
       setState(() => _bubbles.add(_Bubble(role: 'model', text: reply)));
     } catch (e) {
-      setState(() => _bubbles.add(_Bubble(
-          role: 'assistant',
-          text: '⚠️ ${e.toString().replaceFirst("Exception: ", "")}')));
+      setState(
+        () => _bubbles.add(
+          _Bubble(
+            role: 'assistant',
+            text: '⚠️ ${e.toString().replaceFirst("Exception: ", "")}',
+          ),
+        ),
+      );
     } finally {
       setState(() => _loading = false);
       _scrollToBottom();
@@ -70,97 +76,129 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
-        title: const Row(children: [
-          Icon(Icons.smart_toy_rounded, size: 20),
-          SizedBox(width: 8),
-          Text('HR Assistant',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
-        ]),
-      ),
-      body: Column(children: [
-        // Messages
-        Expanded(
-          child: ListView(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Welcome message
-              _BubbleWidget(role: 'model',
-                  text: '👋 Hi! Ask me anything about leave, claims, OT, payroll, or HR policies.'),
-              ..._bubbles.map((b) => _BubbleWidget(role: b.role, text: b.text)),
-              if (_loading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: _TypingIndicator(),
-                ),
-            ],
-          ),
+        title: const Row(
+          children: [
+            Icon(Icons.smart_toy_rounded, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'HR Assistant',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+            ),
+          ],
         ),
-
-        // Suggested chips (shown only at start)
-        if (_bubbles.isEmpty)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: Row(children: [
-              'How is OT calculated?',
-              'What claims can I submit?',
-              'Explain EPF deductions',
-              'How to apply leave?',
-            ].map((q) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ActionChip(
-                label: Text(q, style: const TextStyle(fontSize: 12)),
-                onPressed: () => _send(q),
-                backgroundColor: const Color(0xFFEDE9FE),
-                labelStyle: const TextStyle(color: Color(0xFF6D28D9)),
-                side: BorderSide.none,
-              ),
-            )).toList()),
+      ),
+      body: Column(
+        children: [
+          // Messages
+          Expanded(
+            child: ListView(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              children: [
+                // Welcome message
+                _BubbleWidget(
+                  role: 'model',
+                  text:
+                      '👋 Hi! Ask me anything about leave, claims, OT, payroll, or HR policies.',
+                ),
+                ..._bubbles.map(
+                  (b) => _BubbleWidget(role: b.role, text: b.text),
+                ),
+                if (_loading)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: _TypingIndicator(),
+                  ),
+              ],
+            ),
           ),
 
-        // Input bar
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-          child: SafeArea(
-            top: false,
-            child: Row(children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: _send,
-                  decoration: InputDecoration(
-                    hintText: 'Ask a question...',
-                    filled: true,
-                    fillColor: const Color(0xFFF3F4F6),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
+          // Suggested chips (shown only at start)
+          if (_bubbles.isEmpty)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              child: Row(
+                children:
+                    [
+                          'How is OT calculated?',
+                          'What claims can I submit?',
+                          'Explain EPF deductions',
+                          'How to apply leave?',
+                        ]
+                        .map(
+                          (q) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ActionChip(
+                              label: Text(
+                                q,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              onPressed: () => _send(q),
+                              backgroundColor: const Color(0xFFEDE9FE),
+                              labelStyle: const TextStyle(
+                                color: Color(0xFF6D28D9),
+                              ),
+                              side: BorderSide.none,
+                            ),
+                          ),
+                        )
+                        .toList(),
+              ),
+            ),
+
+          // Input bar
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: _send,
+                      decoration: InputDecoration(
+                        hintText: 'Ask a question...',
+                        filled: true,
+                        fillColor: const Color(0xFFF3F4F6),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _send(_controller.text),
-                child: Container(
-                  width: 46, height: 46,
-                  decoration: BoxDecoration(
-                    color: _loading ? Colors.grey : AppTheme.primary,
-                    shape: BoxShape.circle,
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _send(_controller.text),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: _loading ? Colors.grey : AppTheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
-                  child: const Icon(Icons.send_rounded,
-                      color: Colors.white, size: 20),
-                ),
+                ],
               ),
-            ]),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -182,17 +220,24 @@ class _BubbleWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment:
-            isAi ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment: isAi
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (isAi) ...[
             Container(
-              width: 32, height: 32,
+              width: 32,
+              height: 32,
               decoration: const BoxDecoration(
-                color: Color(0xFFEDE9FE), shape: BoxShape.circle),
-              child: const Icon(Icons.smart_toy_rounded,
-                  size: 18, color: Color(0xFF7C3AED)),
+                color: Color(0xFFEDE9FE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.smart_toy_rounded,
+                size: 18,
+                color: Color(0xFF7C3AED),
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -208,11 +253,14 @@ class _BubbleWidget extends StatelessWidget {
                   bottomRight: Radius.circular(isAi ? 16 : 4),
                 ),
               ),
-              child: Text(text,
-                  style: TextStyle(
-                      fontSize: 14,
-                      color: isAi ? const Color(0xFF1A1A2E) : Colors.white,
-                      height: 1.5)),
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isAi ? const Color(0xFF1A1A2E) : Colors.white,
+                  height: 1.5,
+                ),
+              ),
             ),
           ),
           if (!isAi) const SizedBox(width: 8),
@@ -227,34 +275,39 @@ class _TypingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      Container(
-        width: 32, height: 32,
-        decoration: const BoxDecoration(
-            color: Color(0xFFEDE9FE), shape: BoxShape.circle),
-        child: const Icon(Icons.smart_toy_rounded,
-            size: 18, color: Color(0xFF7C3AED)),
-      ),
-      const SizedBox(width: 8),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F3FF),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const SizedBox(
-          width: 40, height: 10,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _Dot(delay: 0),
-              _Dot(delay: 150),
-              _Dot(delay: 300),
-            ],
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: const BoxDecoration(
+            color: Color(0xFFEDE9FE),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.smart_toy_rounded,
+            size: 18,
+            color: Color(0xFF7C3AED),
           ),
         ),
-      ),
-    ]);
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F3FF),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const SizedBox(
+            width: 40,
+            height: 10,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [_Dot(delay: 0), _Dot(delay: 150), _Dot(delay: 300)],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -274,17 +327,23 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600))
-      ..repeat(reverse: true);
-    _anim = Tween(begin: 0.0, end: -6.0).animate(CurvedAnimation(
-        parent: _ctrl, curve: Curves.easeInOut));
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+    _anim = Tween(
+      begin: 0.0,
+      end: -6.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
     Future.delayed(Duration(milliseconds: widget.delay), () {
       if (mounted) _ctrl.forward();
     });
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -293,9 +352,13 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
       builder: (_, __) => Transform.translate(
         offset: Offset(0, _anim.value),
         child: Container(
-            width: 7, height: 7,
-            decoration: const BoxDecoration(
-                color: Color(0xFF9CA3AF), shape: BoxShape.circle)),
+          width: 7,
+          height: 7,
+          decoration: const BoxDecoration(
+            color: Color(0xFF9CA3AF),
+            shape: BoxShape.circle,
+          ),
+        ),
       ),
     );
   }
