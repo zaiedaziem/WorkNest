@@ -12,6 +12,7 @@ import '../../widgets/haptic_refresh_indicator.dart';
 import 'ot_request_screen.dart';
 import 'payslip_screen.dart';
 import '../../viewmodels/payslip_viewmodel.dart';
+import 'chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -616,12 +617,14 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppTheme.warning,
               onTap: () => _showComingSoon('Announcements'),
             ),
-            _QuickActionCard(
-              icon: Icons.smart_toy_rounded,
-              label: 'AI\nHR Help',
-              color: const Color(0xFF8B5CF6),
-              onTap: () => _showComingSoon('AI HR Help'),
-            ),
+            // In your quick actions grid, add:
+          _QuickActionCard(
+            icon: Icons.smart_toy_rounded,
+            label: 'HR Assistant',
+            color: const Color(0xFF7C3AED),
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ChatScreen())),
+          ),
           ],
         ),
       ],
