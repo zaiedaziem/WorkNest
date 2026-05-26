@@ -38,7 +38,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final reply = await _service.send(text, _history);
       _history.add(ChatMessage(role: 'user', text: text));
       _history.add(ChatMessage(role: 'assistant', text: reply));
-      if (_history.length > 20) _history.removeRange(0, 2);
+      if (_history.length > 6) _history.removeRange(0, 2); // keep last 3 exchanges
 
       setState(() => _bubbles.add(_Bubble(role: 'model', text: reply)));
     } catch (e) {
