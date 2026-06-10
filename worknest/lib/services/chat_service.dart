@@ -131,13 +131,13 @@ class ChatService {
     final scored = List.generate(chunks.length, (idx) {
       final lower = chunks[idx].toLowerCase();
       final score = queryWords.where((w) => lower.contains(w)).length;
-      return {'idx': idx, 'score': score, 'chunk': chunks[idx]};
+      return (idx: idx, score: score, chunk: chunks[idx]);
     });
 
-    scored.sort((a, b) => (b['score'] as int).compareTo(a['score'] as int));
+    scored.sort((a, b) => b.score.compareTo(a.score));
 
     final top = scored.take(topK).toList();
-    top.sort((a, b) => (a['idx'] as int).compareTo(b['idx'] as int));
-    return top.map((e) => e['chunk'] as String).toList();
+    top.sort((a, b) => a.idx.compareTo(b.idx));
+    return top.map((e) => e.chunk).toList();
   }
 }

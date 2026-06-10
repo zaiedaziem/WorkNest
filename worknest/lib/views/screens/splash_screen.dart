@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -52,20 +54,20 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _taglineController, curve: Curves.easeOut),
     );
 
-    _startAnimation();
+    unawaited(_startAnimation());
   }
 
   Future<void> _startAnimation() async {
     await Future.delayed(const Duration(milliseconds: 200));
-    _logoController.forward();
+    await _logoController.forward();
     await Future.delayed(const Duration(milliseconds: 600));
-    _taglineController.forward();
+    await _taglineController.forward();
     await Future.delayed(const Duration(milliseconds: 1500));
     await _checkSessionAndNavigate();
   }
 
   Future<void> _checkSessionAndNavigate() async {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     if (!mounted) return;
 
     final supabase = Supabase.instance.client;
@@ -115,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
+      unawaited(Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) =>
               MainScreen(user: user, company: company),
@@ -123,7 +125,7 @@ class _SplashScreenState extends State<SplashScreen>
               FadeTransition(opacity: animation, child: child),
           transitionDuration: const Duration(milliseconds: 600),
         ),
-      );
+      ));
     } catch (_) {
       // If anything fails, fall back to login
       _goToLogin();
