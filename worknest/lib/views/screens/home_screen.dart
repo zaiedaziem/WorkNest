@@ -813,10 +813,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 final nav = Navigator.of(context);
                 nav.pop();
                 await AuthService().signOut();
-                nav.pushAndRemoveUntil(
+                unawaited(nav.pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
-                );
+                ));
               },
             ),
             const SizedBox(height: 8),

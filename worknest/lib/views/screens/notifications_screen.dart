@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/notification_model.dart';
@@ -177,7 +179,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
     );
     if (confirm == true) {
-      widget.viewModel.delete(n.id);
+      await widget.viewModel.delete(n.id);
     }
   }
 }

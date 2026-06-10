@@ -2,5 +2,5 @@ projectKey=WorkNest_Mobile
 serverUrl=http://localhost:9000
 serverVersion=26.6.0.123539
 dashboardUrl=http://localhost:9000/dashboard?id=WorkNest_Mobile
-ceTaskId=e05318c9-683a-422d-8f4d-394526bca81a
-ceTaskUrl=http://localhost:9000/api/ce/task?id=e05318c9-683a-422d-8f4d-394526bca81a
+ceTaskId=a9c1f4dc-2eed-443f-894a-b67dbdb6579d
+ceTaskUrl=http://localhost:9000/api/ce/task?id=a9c1f4dc-2eed-443f-894a-b67dbdb6579d

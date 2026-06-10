@@ -52,7 +52,8 @@ class HomeViewModel extends ChangeNotifier {
         _attendanceService.getMonthHistory(user.id, now.year, now.month),
       ]);
 
-      _todayAttendance = results[0] as AttendanceModel?;
+      final first = results[0];
+      _todayAttendance = first is AttendanceModel ? first : null;
       final monthRecords = results[1] as List<AttendanceModel>;
 
       _monthTotal = monthRecords.length;

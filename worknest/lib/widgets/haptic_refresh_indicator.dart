@@ -22,7 +22,7 @@ class HapticRefreshIndicator extends StatelessWidget {
     return RefreshIndicator(
       color: color,
       onRefresh: () async {
-        HapticFeedback.mediumImpact();
+        await HapticFeedback.mediumImpact();
         await onRefresh();
       },
       child: child,
