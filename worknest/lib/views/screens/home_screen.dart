@@ -13,6 +13,14 @@ import 'ot_request_screen.dart';
 import 'payslip_screen.dart';
 import '../../viewmodels/payslip_viewmodel.dart';
 import 'chat_screen.dart';
+import '../widgets/home/info_item.dart';
+import '../widgets/home/clock_time_box.dart';
+import '../widgets/home/status_badge.dart';
+import '../widgets/home/quick_action_card.dart';
+import '../widgets/home/mini_stat.dart';
+import '../widgets/home/recent_attendance_row.dart';
+import '../widgets/home/profile_row.dart';
+import '../widgets/home/work_type_button.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -105,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const Text('Where are you working from today?',
                 style: TextStyle(color: AppTheme.textMuted, fontSize: 14)),
             const SizedBox(height: 24),
-            _WorkTypeButton(
+            WorkTypeButton(
               icon: Icons.business_rounded,
               label: 'In Office',
               subtitle: widget.company.locationEnabled
@@ -118,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             const SizedBox(height: 12),
-            _WorkTypeButton(
+            WorkTypeButton(
               icon: Icons.home_rounded,
               label: 'Work From Home',
               subtitle: 'No location check required',
@@ -310,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: _InfoItem(
+                    child: HomeInfoItem(
                       icon: Icons.badge_rounded,
                       label: 'Employee ID',
                       value: widget.user.employeeId,
@@ -318,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   _verticalDivider(),
                   Expanded(
-                    child: _InfoItem(
+                    child: HomeInfoItem(
                       icon: Icons.domain_rounded,
                       label: 'Department',
                       value: widget.user.department ?? widget.company.name,
@@ -326,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   _verticalDivider(),
                   Expanded(
-                    child: _InfoItem(
+                    child: HomeInfoItem(
                       icon: Icons.today_rounded,
                       label: 'Today',
                       value: DateFormat('d MMM').format(_now),
@@ -413,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: _ClockTimeBox(
+                  child: ClockTimeBox(
                     label: 'Clock In',
                     time: attendance?.clockIn != null
                         ? DateFormat('hh:mm a').format(attendance!.clockIn!)
@@ -424,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _ClockTimeBox(
+                  child: ClockTimeBox(
                     label: 'Clock Out',
                     time: attendance?.clockOut != null
                         ? DateFormat('hh:mm a').format(attendance!.clockOut!)
@@ -435,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _ClockTimeBox(
+                  child: ClockTimeBox(
                     label: 'Duration',
                     time: attendance?.durationText ?? '--:--',
                     icon: Icons.timer_rounded,
@@ -452,14 +460,14 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 14),
               child: Row(
                 children: [
-                  _StatusBadge(
+                  StatusBadge(
                     label: attendance.status == 'late' ? 'Late' : 'Present',
                     color: attendance.status == 'late'
                         ? AppTheme.warning
                         : AppTheme.success,
                   ),
                   const SizedBox(width: 8),
-                  _StatusBadge(
+                  StatusBadge(
                     label: attendance.type == 'wfh'
                         ? 'Work From Home'
                         : 'In Office',
@@ -566,25 +574,25 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSpacing: 12,
           childAspectRatio: 1.0,
           children: [
-            _QuickActionCard(
+            QuickActionCard(
               icon: Icons.calendar_month_rounded,
               label: 'My\nAttendance',
               color: AppTheme.primary,
               onTap: () => widget.onNavigateToTab?.call(1),
             ),
-            _QuickActionCard(
+            QuickActionCard(
               icon: Icons.beach_access_rounded,
               label: 'My\nLeave',
               color: const Color(0xFF06B6D4),
               onTap: () => widget.onNavigateToTab?.call(2),
             ),
-            _QuickActionCard(
+            QuickActionCard(
               icon: Icons.receipt_long_rounded,
               label: 'My\nClaims',
               color: AppTheme.secondary,
               onTap: () => widget.onNavigateToTab?.call(3),
             ),
-            _QuickActionCard(
+            QuickActionCard(
               icon: Icons.access_time_rounded,
               label: 'OT\nRequest',
               color: AppTheme.success,
@@ -598,7 +606,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            _QuickActionCard(
+            QuickActionCard(
               icon: Icons.receipt_long_rounded,
               label: 'My\nPayslip',
               color: const Color(0xFF0EA5E9),
@@ -611,14 +619,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            _QuickActionCard(
+            QuickActionCard(
               icon: Icons.campaign_rounded,
               label: 'Announce\nments',
               color: AppTheme.warning,
               onTap: () => _showComingSoon('Announcements'),
             ),
             // In your quick actions grid, add:
-          _QuickActionCard(
+          QuickActionCard(
             icon: Icons.smart_toy_rounded,
             label: 'HR Assistant',
             color: const Color(0xFF7C3AED),
@@ -677,7 +685,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             children: [
               Expanded(
-                child: _MiniStat(
+                child: MiniStat(
                   label: 'Total',
                   value: '${_viewModel.monthTotal}',
                   color: AppTheme.primary,
@@ -685,7 +693,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Container(width: 1, height: 28, color: AppTheme.primary.withValues(alpha: 0.15)),
               Expanded(
-                child: _MiniStat(
+                child: MiniStat(
                   label: 'Present',
                   value: '${_viewModel.monthPresent}',
                   color: AppTheme.success,
@@ -693,7 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Container(width: 1, height: 28, color: AppTheme.primary.withValues(alpha: 0.15)),
               Expanded(
-                child: _MiniStat(
+                child: MiniStat(
                   label: 'Late',
                   value: '${_viewModel.monthLate}',
                   color: AppTheme.warning,
@@ -727,7 +735,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         else
           ...(_viewModel.recentAttendance
-              .map((r) => _RecentAttendanceRow(record: r))),
+              .map((r) => RecentAttendanceRow(record: r))),
       ],
     );
   }
@@ -774,20 +782,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: const TextStyle(
                       fontSize: 13, color: AppTheme.textMuted)),
             const SizedBox(height: 20),
-            _ProfileRow(
+            ProfileRow(
                 icon: Icons.badge_rounded,
                 label: 'Employee ID',
                 value: widget.user.employeeId),
             if (widget.user.department != null)
-              _ProfileRow(
+              ProfileRow(
                   icon: Icons.domain_rounded,
                   label: 'Department',
                   value: widget.user.department!),
-            _ProfileRow(
+            ProfileRow(
                 icon: Icons.business_rounded,
                 label: 'Company',
                 value: widget.company.name),
-            _ProfileRow(
+            ProfileRow(
                 icon: Icons.email_rounded,
                 label: 'Email',
                 value: widget.user.email ?? '—',
@@ -819,375 +827,3 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Reusable Widgets ──────────────────────────────────────────────────────────
-
-class _InfoItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  const _InfoItem(
-      {required this.icon, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: AppTheme.primary, size: 18),
-        const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textMuted)),
-        const SizedBox(height: 2),
-        Text(value,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textDark)),
-      ],
-    );
-  }
-}
-
-class _ClockTimeBox extends StatelessWidget {
-  final String label;
-  final String time;
-  final IconData icon;
-  final Color color;
-  const _ClockTimeBox(
-      {required this.label,
-      required this.time,
-      required this.icon,
-      required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(height: 4),
-          Text(time,
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: color)),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 10, color: AppTheme.textMuted)),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _StatusBadge({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color)),
-    );
-  }
-}
-
-class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-  const _QuickActionCard(
-      {required this.icon,
-      required this.label,
-      required this.color,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2))
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(height: 8),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark,
-                    height: 1.3)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-  const _MiniStat(
-      {required this.label, required this.value, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value,
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: color)),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 11,
-                color: AppTheme.textMuted,
-                fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
-}
-
-class _RecentAttendanceRow extends StatelessWidget {
-  final AttendanceModel record;
-  const _RecentAttendanceRow({required this.record});
-
-  @override
-  Widget build(BuildContext context) {
-    final isLate = record.status == 'late';
-    final statusColor = isLate ? AppTheme.warning : AppTheme.success;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(DateFormat('EEE').format(record.date),
-                    style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primary)),
-                Text(DateFormat('dd').format(record.date),
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primary)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(DateFormat('d MMM yyyy').format(record.date),
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textDark)),
-                const SizedBox(height: 3),
-                Text(
-                  '${record.clockIn != null ? DateFormat('hh:mm a').format(record.clockIn!) : '-'}'
-                  '  →  '
-                  '${record.clockOut != null ? DateFormat('hh:mm a').format(record.clockOut!) : 'Working...'}',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppTheme.textMuted),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _StatusBadge(
-                  label: isLate ? 'Late' : 'Present',
-                  color: statusColor),
-              if (record.duration != null) ...[
-                const SizedBox(height: 4),
-                Text(record.durationText,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.textMuted,
-                        fontWeight: FontWeight.w500)),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  /// Optional small grey hint shown below the value (e.g. "Contact HR to change").
-  final String? note;
-  const _ProfileRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.note,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Icon(icon, size: 16, color: AppTheme.textMuted),
-          ),
-          const SizedBox(width: 10),
-          Text('$label: ',
-              style: const TextStyle(
-                  fontSize: 13, color: AppTheme.textMuted)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(value,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textDark),
-                    overflow: TextOverflow.ellipsis),
-                if (note != null)
-                  Text(note!,
-                      style: const TextStyle(
-                          fontSize: 11, color: AppTheme.textMuted)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WorkTypeButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _WorkTypeButton(
-      {required this.icon,
-      required this.label,
-      required this.subtitle,
-      required this.color,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: color)),
-                Text(subtitle,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppTheme.textMuted)),
-              ],
-            ),
-            const Spacer(),
-            Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
-          ],
-        ),
-      ),
-    );
-  }
-}
