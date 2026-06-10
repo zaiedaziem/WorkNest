@@ -22,6 +22,10 @@ class PayslipModel {
   // Employee & company info (populated by service)
   final String empName;
   final String empIdStr;
+  final String department;
+  final String icNumber;
+  final String bankName;
+  final String bankAccount;
   final String companyName;
   final String companyAddress;
   final String companyPhone;
@@ -49,6 +53,10 @@ class PayslipModel {
     this.hrRemarks,
     this.empName = '',
     this.empIdStr = '-',
+    this.department = '-',
+    this.icNumber = '-',
+    this.bankName = '-',
+    this.bankAccount = '-',
     this.companyName = '',
     this.companyAddress = '',
     this.companyPhone = '',
@@ -59,6 +67,10 @@ class PayslipModel {
     Map<String, dynamic> m, {
     String empName = '',
     String empIdStr = '-',
+    String department = '-',
+    String icNumber = '-',
+    String bankName = '-',
+    String bankAccount = '-',
     String companyName = '',
     String companyAddress = '',
     String companyPhone = '',
@@ -89,6 +101,10 @@ class PayslipModel {
       hrRemarks:           m['HrRemarks']?.toString() ?? m['hr_remarks']?.toString(),
       empName:             empName,
       empIdStr:            empIdStr,
+      department:          department,
+      icNumber:            icNumber,
+      bankName:            bankName,
+      bankAccount:         bankAccount,
       companyName:         companyName,
       companyAddress:      companyAddress,
       companyPhone:        companyPhone,

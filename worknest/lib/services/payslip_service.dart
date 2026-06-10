@@ -5,9 +5,13 @@ class PayslipService {
   final _db = Supabase.instance.client;
 
   Future<List<PayslipModel>> getAll(String userId) async {
-    // 1. Fetch employee's user info
-    String empName = '';
-    String empIdStr = '-';
+    // 1. Fetch employee's user + employee info
+    String empName     = '';
+    String empIdStr    = '-';
+    String department  = '-';
+    String icNumber    = '-';
+    String bankName    = '-';
+    String bankAccount = '-';
     String companyName = '';
     String companyAddress = '';
     String companyPhone = '';
@@ -20,8 +24,22 @@ class PayslipService {
           .eq('id', userId)
           .single();
 
-      empName = '${userRow['first_name'] ?? ''} ${userRow['last_name'] ?? ''}'.trim();
+      empName  = '${userRow['first_name'] ?? ''} ${userRow['last_name'] ?? ''}'.trim();
       empIdStr = userRow['employee_id']?.toString() ?? '-';
+
+      // Fetch employee record for dept + payroll fields
+      try {
+        final empRow = await _db
+            .from('employees')
+            .select('department, ic_number, bank_name, bank_account')
+            .eq('user_id', userId)
+            .single();
+
+        department  = empRow['department']?.toString()   ?? '-';
+        icNumber    = empRow['ic_number']?.toString()    ?? '-';
+        bankName    = empRow['bank_name']?.toString()    ?? '-';
+        bankAccount = empRow['bank_account']?.toString() ?? '-';
+      } catch (_) {}
 
       final companyId = userRow['company_id']?.toString();
       if (companyId != null) {
@@ -40,12 +58,11 @@ class PayslipService {
       // Non-fatal — payslip data still loads without personal info
     }
 
-    // 2. Fetch payroll records
+    // 2. Fetch payroll records (both finalized and draft)
     final data = await _db
         .from('PayrollRecords')
         .select()
         .eq('EmployeeId', userId)
-        .eq('Status', 'finalized')
         .order('Year', ascending: false)
         .order('Month', ascending: false)
         .limit(24)
@@ -56,6 +73,10 @@ class PayslipService {
               e,
               empName:        empName,
               empIdStr:       empIdStr,
+              department:     department,
+              icNumber:       icNumber,
+              bankName:       bankName,
+              bankAccount:    bankAccount,
               companyName:    companyName,
               companyAddress: companyAddress,
               companyPhone:   companyPhone,
