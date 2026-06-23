@@ -54,7 +54,7 @@ class HomeViewModel extends ChangeNotifier {
 
       final first = results[0];
       _todayAttendance = first is AttendanceModel ? first : null;
-      final monthRecords = results[1] as List<AttendanceModel>;
+      final monthRecords = (results[1] as List).whereType<AttendanceModel>().toList();
 
       _monthTotal = monthRecords.length;
       _monthPresent = monthRecords.where((r) => r.status == 'present').length;
