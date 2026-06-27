@@ -31,7 +31,7 @@ class AuthService {
         .eq('is_active', true)
         .maybeSingle();
 
-    if (userData == null) throw Exception('Employee ID not found.');
+    if (userData == null) throw Exception('Employee ID not found or not authorized.');
 
     final email = userData['email'] as String?;
     if (email == null || email.isEmpty) {
@@ -44,11 +44,8 @@ class AuthService {
         email: email,
         password: password,
       );
-    } on AuthException catch (e) {
-      if (e.message.toLowerCase().contains('invalid')) {
-        throw Exception('Incorrect password.');
-      }
-      throw Exception(e.message);
+    } on AuthException catch (_) {
+      throw Exception('Incorrect password.');
     }
 
     return {
@@ -96,7 +93,7 @@ class AuthService {
         .eq('is_active', true)
         .maybeSingle();
 
-    if (userData == null) throw Exception('Employee ID not found.');
+    if (userData == null) throw Exception('Employee ID not found or not authorized.');
 
     final email = userData['email'] as String?;
     if (email == null || email.isEmpty) {
