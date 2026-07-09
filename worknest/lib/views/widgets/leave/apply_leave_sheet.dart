@@ -188,13 +188,26 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Apply Leave',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.textDark,
-                ),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Apply Leave',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppTheme.textMuted, size: 22),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 
@@ -500,7 +513,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
               GestureDetector(
                 onTap: _pickFile,
                 child: Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: _pickedFile != null

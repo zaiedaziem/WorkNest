@@ -83,61 +83,84 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: SlideTransition(
-            position: _slideAnim,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 60),
-
-                    // Header
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [AppTheme.primary, AppTheme.secondary],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: const Icon(Icons.hub_rounded,
-                                color: Colors.white, size: 34),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Welcome Back',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textDark,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Sign in to your WorkNest account',
-                            style: TextStyle(
-                                fontSize: 14, color: AppTheme.textMuted),
-                          ),
-                        ],
-                      ),
+      body: FadeTransition(
+        opacity: _fadeAnim,
+        child: Column(
+          children: [
+            // Gradient header
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(24, topInset + 32, 24, 32),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.primary, AppTheme.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
+                    child: Image.asset(
+                      'assets/icon/WorkNest_app_icon.png',
+                      width: 64,
+                      height: 64,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Welcome Back',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Sign in to your WorkNest account',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-                    const SizedBox(height: 40),
-
+            // Form
+            Expanded(
+              child: SafeArea(
+                top: false,
+                child: SlideTransition(
+                  position: _slideAnim,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                     // Error message
                     if (_viewModel.state == LoginState.error &&
                         _viewModel.errorMessage != null) ...[
@@ -286,12 +309,15 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 40),
-                  ],
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

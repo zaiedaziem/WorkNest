@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/chat_service.dart';
 import '../../theme/app_theme.dart';
@@ -339,22 +340,64 @@ class _BubbleWidget extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: isAi ? const Color(0xFFF5F3FF) : AppTheme.primary,
+                color: isAi ? Colors.white : AppTheme.primary,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
                   bottomLeft: Radius.circular(isAi ? 4 : 16),
                   bottomRight: Radius.circular(isAi ? 16 : 4),
                 ),
+                border: isAi
+                    ? Border.all(color: const Color(0xFFECE7FB))
+                    : null,
+                boxShadow: isAi
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
+                    : null,
               ),
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isAi ? const Color(0xFF1A1A2E) : Colors.white,
-                  height: 1.5,
-                ),
-              ),
+              child: isAi
+                  ? MarkdownBody(
+                      data: text,
+                      shrinkWrap: true,
+                      styleSheet: MarkdownStyleSheet(
+                        p: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1F2233),
+                          height: 1.5,
+                        ),
+                        strong: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1F2233),
+                          fontWeight: FontWeight.w700,
+                          height: 1.5,
+                        ),
+                        em: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1F2233),
+                          fontStyle: FontStyle.italic,
+                          height: 1.5,
+                        ),
+                        listBullet: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1F2233),
+                        ),
+                        listIndent: 18,
+                        blockSpacing: 6,
+                      ),
+                    )
+                  : Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        height: 1.5,
+                      ),
+                    ),
             ),
           ),
           if (!isAi) const SizedBox(width: 8),

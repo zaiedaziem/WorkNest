@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../../viewmodels/ot_request_viewmodel.dart';
 import '../../../theme/app_theme.dart';
@@ -122,13 +123,26 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                   ),
                 ),
               ),
-              const Text(
-                'Submit OT Request',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textDark,
-                ),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Submit OT Request',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppTheme.textMuted, size: 22),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 
@@ -256,15 +270,17 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                   ),
                 ],
               ),
-              if (_hours > 0) ...[
+              if (_hours != 0) ...[
                 const SizedBox(height: 6),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    '${_hours.toStringAsFixed(1)} hours OT',
-                    style: const TextStyle(
+                    _hours > 0
+                        ? '${_hours.toStringAsFixed(1)} hours OT'
+                        : 'End time must be after start time',
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTheme.primary,
+                      color: _hours > 0 ? AppTheme.primary : AppTheme.danger,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -411,7 +427,10 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
     final selected = _otType == value;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _otType = value),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _otType = value);
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(

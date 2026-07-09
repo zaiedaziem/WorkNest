@@ -8,6 +8,7 @@ import '../../widgets/haptic_refresh_indicator.dart';
 import '../widgets/leave/balance_card.dart';
 import '../widgets/leave/history_card.dart';
 import '../widgets/leave/apply_leave_sheet.dart';
+import '../widgets/claims/header_stat.dart';
 
 class LeaveScreen extends StatefulWidget {
   final UserModel user;
@@ -97,14 +98,26 @@ class _LeaveScreenState extends State<LeaveScreen>
   // ── Header ─────────────────────────────────────────────────────────────────
 
   Widget _buildHeader() {
+    final totalRemaining = _viewModel.balances.fold<double>(
+      0, (sum, b) => sum + b.remainingDays);
+    final totalUsed = _viewModel.balances.fold<double>(
+      0, (sum, b) => sum + b.usedDays);
+    final totalPending = _viewModel.balances.fold<double>(
+      0, (sum, b) => sum + b.pendingDays);
+    String fmt(double v) => v % 1 == 0 ? v.toInt().toString() : v.toString();
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
       ),
       child: Column(
@@ -125,6 +138,21 @@ class _LeaveScreenState extends State<LeaveScreen>
               fontSize: 13,
             ),
           ),
+          if (_viewModel.balances.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                ClaimHeaderStat(
+                    label: 'Remaining', value: fmt(totalRemaining), color: Colors.white),
+                const SizedBox(width: 16),
+                ClaimHeaderStat(
+                    label: 'Pending', value: fmt(totalPending), color: Colors.amber),
+                const SizedBox(width: 16),
+                ClaimHeaderStat(
+                    label: 'Used', value: fmt(totalUsed), color: Colors.white70),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -159,27 +187,41 @@ class _LeaveScreenState extends State<LeaveScreen>
     }
 
     if (_viewModel.balances.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.beach_access_rounded,
-              size: 60,
-              color: AppTheme.textMuted.withValues(alpha: 0.4),
+      return HapticRefreshIndicator(
+        onRefresh: _viewModel.loadData,
+        child: LayoutBuilder(
+          builder: (_, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.beach_access_rounded,
+                        size: 60,
+                        color: AppTheme.textMuted.withValues(alpha: 0.4),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No leave balance assigned yet.',
+                        style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Please contact HR to set up your leave balance.',
+                        style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'No leave balance assigned yet.',
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Please contact HR to set up your leave balance.',
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
       );
     }
@@ -218,21 +260,35 @@ class _LeaveScreenState extends State<LeaveScreen>
     }
 
     if (_viewModel.history.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history_rounded,
-              size: 60,
-              color: AppTheme.textMuted.withValues(alpha: 0.4),
+      return HapticRefreshIndicator(
+        onRefresh: _viewModel.loadData,
+        child: LayoutBuilder(
+          builder: (_, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.history_rounded,
+                        size: 60,
+                        color: AppTheme.textMuted.withValues(alpha: 0.4),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No leave requests yet.',
+                        style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'No leave requests yet.',
-              style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
-            ),
-          ],
+          ),
         ),
       );
     }

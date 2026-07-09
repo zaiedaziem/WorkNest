@@ -165,15 +165,10 @@ class _SplashScreenState extends State<SplashScreen>
                 opacity: _fadeAnim,
                 child: Column(
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: const Icon(Icons.hub_rounded,
-                          size: 44, color: Colors.white),
+                    Image.asset(
+                      'assets/icon/WorkNest_app_icon.png',
+                      width: 96,
+                      height: 96,
                     ),
                     const SizedBox(height: 20),
                     const Text(

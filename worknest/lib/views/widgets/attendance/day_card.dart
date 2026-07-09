@@ -59,8 +59,8 @@ class DayCard extends StatelessWidget {
       final dayName = DateFormat('EEE').format(date);
       final dayNum = DateFormat('d').format(date);
       return Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(12),
@@ -133,7 +133,7 @@ class DayCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(

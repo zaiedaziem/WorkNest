@@ -91,6 +91,10 @@ class _ClaimsScreenState extends State<ClaimsScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,20 +132,34 @@ class _ClaimsScreenState extends State<ClaimsScreen> {
     }
 
     if (_viewModel.history.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.receipt_long_rounded,
-                size: 64, color: AppTheme.textMuted.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            const Text('No claims yet',
-                style: TextStyle(
-                    fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-            const SizedBox(height: 6),
-            const Text('Tap "Submit Claim" to get started',
-                style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
-          ],
+      return HapticRefreshIndicator(
+        onRefresh: _viewModel.loadData,
+        child: LayoutBuilder(
+          builder: (_, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.receipt_long_rounded,
+                          size: 64, color: AppTheme.textMuted.withValues(alpha: 0.3)),
+                      const SizedBox(height: 16),
+                      const Text('No claims yet',
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                      const SizedBox(height: 6),
+                      const Text('Tap "Submit Claim" to get started',
+                          style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       );
     }

@@ -417,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Clock in/out times
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [
                 Expanded(
@@ -457,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Status badge row
           if (attendance != null)
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 14),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: Row(
                 children: [
                   StatusBadge(
@@ -765,9 +765,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (confirmed != true || !mounted) return;
 
-    final nav = Navigator.of(sheetContext);
-    nav.pop(); // close the profile sheet
+    Navigator.of(sheetContext).pop(); // close the profile sheet
+    if (!mounted) return;
+
+    final nav = Navigator.of(context);
+
+    // Non-dismissible loading overlay while sign-out completes
+    unawaited(showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Center(
+          child: SizedBox(
+            width: 88,
+            height: 88,
+            child: Card(
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: AppTheme.primary,
+                  strokeWidth: 3,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+
     await AuthService().signOut();
+
     unawaited(nav.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,

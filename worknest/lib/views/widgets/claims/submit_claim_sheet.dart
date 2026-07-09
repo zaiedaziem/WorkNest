@@ -829,11 +829,24 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                         borderRadius: BorderRadius.circular(2))),
               ),
               const SizedBox(height: 20),
-              const Text('Submit Claim',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textDark)),
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text('Submit Claim',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textDark)),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppTheme.textMuted, size: 22),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
 
               _sectionLabel('Claim Type'),
