@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: worknest
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -43,5 +47,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: worknest-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: worknest/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
