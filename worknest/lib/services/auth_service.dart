@@ -11,7 +11,30 @@ class AuthService {
     required String employeeId,
     required String password,
   }) async {
-    // 1. Find company
+    // 1. Look up the email via a narrow RPC — this runs anonymously (before
+    // auth), so it must NOT expose full row data under RLS. See
+    // get_login_email() in Supabase.
+    final email = await _supabase.rpc('get_login_email', params: {
+      'p_company_code': companyCode,
+      'p_employee_id': employeeId,
+    }) as String?;
+
+    if (email == null || email.isEmpty) {
+      throw Exception('Company or Employee ID not found.');
+    }
+
+    // 2. Sign in with Supabase Auth using the email we found
+    try {
+      await _supabase.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+    } on AuthException catch (_) {
+      throw Exception('Incorrect password.');
+    }
+
+    // 3. Now authenticated — fetch full company + user rows (RLS allows
+    // this since the session is no longer anonymous).
     final companyData = await _supabase
         .from('companies')
         .select()
@@ -21,7 +44,6 @@ class AuthService {
 
     if (companyData == null) throw Exception('Company not found.');
 
-    // 2. Find employee to get their email
     final userData = await _supabase
         .from('users')
         .select()
@@ -33,6 +55,7 @@ class AuthService {
 
     if (userData == null) throw Exception('Employee ID not found.');
 
+<<<<<<< Updated upstream
     final email = userData['email'] as String?;
     if (email == null || email.isEmpty) {
       throw Exception('No email linked to this account. Contact your HR.');
@@ -51,6 +74,8 @@ class AuthService {
       throw Exception(e.message);
     }
 
+=======
+>>>>>>> Stashed changes
     return {
       'user': UserModel.fromMap(userData),
       'company': CompanyModel.fromMap(companyData),
@@ -76,14 +101,12 @@ class AuthService {
     required String companyCode,
     required String employeeId,
   }) async {
-    // 1. Find company
-    final companyData = await _supabase
-        .from('companies')
-        .select('id')
-        .eq('company_code', companyCode.toLowerCase().trim())
-        .eq('is_active', true)
-        .maybeSingle();
+    final email = await _supabase.rpc('get_login_email', params: {
+      'p_company_code': companyCode,
+      'p_employee_id': employeeId,
+    }) as String?;
 
+<<<<<<< Updated upstream
     if (companyData == null) throw Exception('Company not found.');
 
     // 2. Find employee by company + employee_id
@@ -99,11 +122,12 @@ class AuthService {
     if (userData == null) throw Exception('Employee ID not found.');
 
     final email = userData['email'] as String?;
+=======
+>>>>>>> Stashed changes
     if (email == null || email.isEmpty) {
-      throw Exception('No email linked to this account. Contact your HR.');
+      throw Exception('Company or Employee ID not found.');
     }
 
-    // 3. Send OTP to that email
     await sendOtp(email);
     return email;
   }
