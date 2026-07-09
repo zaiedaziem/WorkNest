@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/chat_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -10,6 +13,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  static const _cacheKey = 'chat_cache_v1';
+
   final _service = ChatService();
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
@@ -18,10 +23,91 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _loading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _loadCache();
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_cacheKey);
+    if (raw == null || raw.isEmpty) return;
+
+    try {
+      final List decoded = jsonDecode(raw);
+      final bubbles = decoded
+          .map((e) => _Bubble(role: e['role'] as String, text: e['text'] as String))
+          .toList();
+
+      // Rebuild the short-term history the model uses for context
+      // (last 3 exchanges, mapping 'model' bubbles back to 'assistant').
+      final history = <ChatMessage>[];
+      for (final b in bubbles) {
+        if (b.role == 'user') {
+          history.add(ChatMessage(role: 'user', text: b.text));
+        } else if (b.role == 'model') {
+          history.add(ChatMessage(role: 'assistant', text: b.text));
+        }
+      }
+      final trimmed = history.length > 6
+          ? history.sublist(history.length - 6)
+          : history;
+
+      setState(() {
+        _bubbles.addAll(bubbles);
+        _history.addAll(trimmed);
+      });
+      _scrollToBottom();
+    } catch (_) {
+      // Corrupt cache — ignore and start fresh
+    }
+  }
+
+  Future<void> _saveCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(
+      _bubbles.map((b) => {'role': b.role, 'text': b.text}).toList(),
+    );
+    await prefs.setString(_cacheKey, encoded);
+  }
+
+  Future<void> _confirmClearConversation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Clear Conversation',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: const Text(
+            'This will delete the chat history on this device. This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Clear', style: TextStyle(color: AppTheme.danger)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _bubbles.clear();
+      _history.clear();
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_cacheKey);
   }
 
   Future<void> _send(String text) async {
@@ -54,6 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } finally {
       setState(() => _loading = false);
       _scrollToBottom();
+      unawaited(_saveCache());
     }
   }
 
@@ -86,6 +173,13 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded),
+            tooltip: 'Clear conversation',
+            onPressed: _bubbles.isEmpty ? null : _confirmClearConversation,
+          ),
+        ],
       ),
       body: Column(
         children: [

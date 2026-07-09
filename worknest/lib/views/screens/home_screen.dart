@@ -740,6 +740,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Sign Out Confirmation ─────────────────────────────────────────────────
+
+  Future<void> _confirmSignOut(BuildContext sheetContext) async {
+    final confirmed = await showDialog<bool>(
+      context: sheetContext,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign Out',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Sign Out',
+                style: TextStyle(color: AppTheme.danger)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    final nav = Navigator.of(sheetContext);
+    nav.pop(); // close the profile sheet
+    await AuthService().signOut();
+    unawaited(nav.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    ));
+  }
+
   // ── Profile Bottom Sheet ──────────────────────────────────────────────────
 
   void _showProfileSheet() {
@@ -809,15 +843,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                       color: AppTheme.danger,
                       fontWeight: FontWeight.w600)),
-              onTap: () async {
-                final nav = Navigator.of(context);
-                nav.pop();
-                await AuthService().signOut();
-                unawaited(nav.pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                ));
-              },
+              onTap: () => _confirmSignOut(context),
             ),
             const SizedBox(height: 8),
           ],
