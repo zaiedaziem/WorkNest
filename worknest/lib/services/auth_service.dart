@@ -29,8 +29,11 @@ class AuthService {
         email: email,
         password: password,
       );
-    } on AuthException catch (_) {
-      throw Exception('Incorrect password.');
+    } on AuthException catch (e) {
+      if (e.message.toLowerCase().contains('invalid')) {
+        throw Exception('Incorrect password.');
+      }
+      throw Exception(e.message);
     }
 
     // 3. Now authenticated — fetch full company + user rows (RLS allows
@@ -55,27 +58,6 @@ class AuthService {
 
     if (userData == null) throw Exception('Employee ID not found.');
 
-<<<<<<< Updated upstream
-    final email = userData['email'] as String?;
-    if (email == null || email.isEmpty) {
-      throw Exception('No email linked to this account. Contact your HR.');
-    }
-
-    // 3. Sign in with Supabase Auth using the email we found
-    try {
-      await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-    } on AuthException catch (e) {
-      if (e.message.toLowerCase().contains('invalid')) {
-        throw Exception('Incorrect password.');
-      }
-      throw Exception(e.message);
-    }
-
-=======
->>>>>>> Stashed changes
     return {
       'user': UserModel.fromMap(userData),
       'company': CompanyModel.fromMap(companyData),
@@ -106,24 +88,6 @@ class AuthService {
       'p_employee_id': employeeId,
     }) as String?;
 
-<<<<<<< Updated upstream
-    if (companyData == null) throw Exception('Company not found.');
-
-    // 2. Find employee by company + employee_id
-    final userData = await _supabase
-        .from('users')
-        .select('email')
-        .eq('company_id', companyData['id'])
-        .eq('employee_id', employeeId.trim())
-        .eq('role', 'employee')
-        .eq('is_active', true)
-        .maybeSingle();
-
-    if (userData == null) throw Exception('Employee ID not found.');
-
-    final email = userData['email'] as String?;
-=======
->>>>>>> Stashed changes
     if (email == null || email.isEmpty) {
       throw Exception('Company or Employee ID not found.');
     }
