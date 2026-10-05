@@ -177,7 +177,7 @@ class _OtRequestScreenState extends State<OtRequestScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => SubmitOtSheet(vm: _vm),
+      builder: (_) => SubmitOtSheet(vm: _vm, company: widget.company),
     );
   }
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../../../models/company_model.dart';
 import '../../../viewmodels/ot_request_viewmodel.dart';
 import '../../../theme/app_theme.dart';
 
 class SubmitOtSheet extends StatefulWidget {
   final OtRequestViewModel vm;
-  const SubmitOtSheet({super.key, required this.vm});
+  final CompanyModel company;
+  const SubmitOtSheet({super.key, required this.vm, required this.company});
 
   @override
   State<SubmitOtSheet> createState() => _SubmitOtSheetState();
@@ -57,6 +59,20 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
 
   void _setError(String? msg) => setState(() => _errorMsg = msg);
 
+  /// OT can only be requested for time outside office hours — if any part
+  /// of [_startTime, _endTime) overlaps the company's configured office
+  /// hours, this is a request for time the employee is already expected
+  /// to be working, not overtime.
+  bool get _overlapsOfficeHours {
+    final startMin = _startTime.hour * 60 + _startTime.minute;
+    final endMin = _endTime.hour * 60 + _endTime.minute;
+    final officeStart =
+        widget.company.workStartHour * 60 + widget.company.workStartMinute;
+    final officeEnd =
+        widget.company.workEndHour * 60 + widget.company.workEndMinute;
+    return startMin < officeEnd && endMin > officeStart;
+  }
+
   Future<void> _submit() async {
     if (_reasonCtrl.text.trim().isEmpty) {
       _setError('Please enter a reason.');
@@ -64,6 +80,12 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
     }
     if (_hours <= 0) {
       _setError('End time must be after start time.');
+      return;
+    }
+    if (_overlapsOfficeHours) {
+      _setError(
+          'OT must be outside office hours (${widget.company.workStartTimeText} - '
+          '${widget.company.workEndTimeText}). Please pick a start/end time before or after work hours.');
       return;
     }
     _setError(null);
@@ -185,6 +207,19 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                 ),
               ),
               const SizedBox(height: 14),
+
+              // Office hours hint — shown up front so employees don't pick a
+              // conflicting time and only find out after tapping submit.
+              Text(
+                'OT must be outside office hours (${widget.company.workStartTimeText} - '
+                '${widget.company.workEndTimeText})',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textMuted,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // Start / End time
               Row(
