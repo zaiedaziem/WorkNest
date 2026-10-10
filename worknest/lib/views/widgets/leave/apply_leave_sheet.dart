@@ -8,6 +8,7 @@ import 'inline_error.dart';
 import 'half_day_chip.dart';
 import 'date_summary_row.dart';
 import 'range_date_picker.dart';
+import '../../../services/error_message.dart';
 
 class ApplyLeaveSheet extends StatefulWidget {
   final List<LeavePolicyModel> policies;
@@ -134,7 +135,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  'Upload failed: ${e.toString().replaceFirst('Exception: ', '')}'),
+                  'Upload failed: ${friendlyError(e)}'),
               backgroundColor: AppTheme.danger,
             ),
           );
@@ -156,7 +157,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
         attachmentUrl: attachmentUrl,
       );
     } catch (e) {
-      final msg = e.toString().replaceFirst('Exception: ', '');
+      final msg = friendlyError(e);
       debugPrint('[Submit] caught error: $msg');
       if (mounted) setState(() => _submitError = msg);
     }

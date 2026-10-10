@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/ot_request_model.dart';
 import '../services/ot_request_service.dart';
+import '../services/error_message.dart';
 
 class OtRequestViewModel extends ChangeNotifier {
   final String userId;
@@ -32,7 +33,7 @@ class OtRequestViewModel extends ChangeNotifier {
     try {
       _requests = await _service.getAll(userId);
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -62,7 +63,7 @@ class OtRequestViewModel extends ChangeNotifier {
       await load();
       return true;
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyError(e);
       _isSubmitting = false;
       notifyListeners();
       return false;

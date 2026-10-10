@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/attendance_model.dart';
 import '../services/attendance_service.dart';
+import '../services/error_message.dart';
 
 /// Status of a single working day in the month view.
 enum DayStatus { present, late, onLeave, absent, upcoming, weekend }
@@ -157,7 +158,7 @@ class AttendanceViewModel extends ChangeNotifier {
 
       _dayRecords = _buildDayRecords(_records, leaves);
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();

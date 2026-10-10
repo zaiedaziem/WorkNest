@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/payslip_model.dart';
 import '../services/payslip_service.dart';
+import '../services/error_message.dart';
 
 class PayslipViewModel extends ChangeNotifier {
   final String userId;
@@ -26,7 +27,7 @@ class PayslipViewModel extends ChangeNotifier {
     try {
       _payslips = await _service.getAll(userId);
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();

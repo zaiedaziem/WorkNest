@@ -8,6 +8,7 @@ import '../../../models/claim_model.dart';
 import '../../../theme/app_theme.dart';
 import '../../../services/claim_service.dart';
 import 'transport_chip.dart';
+import '../../../services/error_message.dart';
 
 class SubmitClaimSheet extends StatefulWidget {
   final String userId;
@@ -192,7 +193,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
         if (mounted) {
           setState(() {
             _submitError =
-                'Receipt upload failed: ${e.toString().replaceFirst("Exception: ", "")}';
+                'Receipt upload failed: ${friendlyError(e)}';
             _isSubmitting = false;
           });
         }
@@ -254,7 +255,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _submitError =
-            e.toString().replaceFirst('Exception: ', ''));
+            friendlyError(e));
       }
     }
     if (mounted) setState(() => _isSubmitting = false);
@@ -744,7 +745,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _submitError =
-            'Could not open file picker: ${e.toString().replaceFirst("Exception: ", "")}');
+            'Could not open file picker: ${friendlyError(e)}');
       }
     }
   }

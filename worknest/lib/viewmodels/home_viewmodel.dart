@@ -6,6 +6,7 @@ import '../models/user_model.dart';
 import '../models/company_model.dart';
 import '../models/attendance_model.dart';
 import '../services/attendance_service.dart';
+import '../services/error_message.dart';
 
 enum HomeState { idle, loading, success, error }
 
@@ -121,9 +122,17 @@ class HomeViewModel extends ChangeNotifier {
           ),
         );
 
+        // Android flags locations that come from "fake GPS" / mock location apps
+        if (position.isMocked) {
+          throw Exception(
+              'Fake GPS detected. Please turn off any mock location app and try again.');
+        }
+
         lat = position.latitude;
         lng = position.longitude;
 
+        // Instant feedback only — the database enforces the same radius rule,
+        // so skipping this check in a modified app doesn't help.
         // Check if within office radius using FRESH company data
         if (freshCompany.hasLocation) {
           final distance = Geolocator.distanceBetween(
@@ -143,8 +152,6 @@ class HomeViewModel extends ChangeNotifier {
         type: type,
         lat: lat,
         lng: lng,
-        workStartHour: freshCompany.workStartHour,
-        workStartMinute: freshCompany.workStartMinute,
       );
 
       _successMessage = type == 'office'
@@ -152,7 +159,7 @@ class HomeViewModel extends ChangeNotifier {
           : 'Clocked in successfully — WFH';
       _state = HomeState.success;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
       _state = HomeState.error;
     }
 
@@ -172,7 +179,7 @@ class HomeViewModel extends ChangeNotifier {
       _successMessage = 'Clocked out successfully. Duration: ${_todayAttendance!.durationText}';
       _state = HomeState.success;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
       _state = HomeState.error;
     }
 

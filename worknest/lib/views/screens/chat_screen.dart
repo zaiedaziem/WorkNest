@@ -5,6 +5,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/chat_service.dart';
 import '../../theme/app_theme.dart';
+import '../../services/error_message.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -134,7 +135,7 @@ class _ChatScreenState extends State<ChatScreen> {
         () => _bubbles.add(
           _Bubble(
             role: 'assistant',
-            text: '⚠️ ${e.toString().replaceFirst("Exception: ", "")}',
+            text: '⚠️ ${friendlyError(e)}',
           ),
         ),
       );
