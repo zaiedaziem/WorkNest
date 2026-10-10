@@ -69,4 +69,16 @@ class OtRequestViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Cancels a pending request. Returns an error message, or null on success.
+  /// (Doesn't set [error], which would replace the whole list with an error view.)
+  Future<String?> cancel(String requestId) async {
+    try {
+      await _service.cancel(requestId);
+      await load();
+      return null;
+    } catch (e) {
+      return friendlyError(e);
+    }
+  }
 }

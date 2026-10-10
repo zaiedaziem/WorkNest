@@ -4,28 +4,36 @@ import '../../../theme/app_theme.dart';
 
 class OtTile extends StatelessWidget {
   final OtRequestModel request;
-  const OtTile({super.key, required this.request});
+  final void Function(String)? onCancel;
+  const OtTile({super.key, required this.request, this.onCancel});
 
   @override
   Widget build(BuildContext context) {
     final isApproved = request.status == 'approved';
     final isPending = request.status == 'pending';
+    final isCancelled = request.status == 'cancelled';
 
     final statusColor = isApproved
         ? AppTheme.success
         : isPending
             ? const Color(0xFFF59E0B)
-            : AppTheme.danger;
+            : isCancelled
+                ? AppTheme.textMuted
+                : AppTheme.danger;
     final statusLabel = isApproved
         ? 'Approved'
         : isPending
             ? 'Pending'
-            : 'Rejected';
+            : isCancelled
+                ? 'Cancelled'
+                : 'Rejected';
     final statusIcon = isApproved
         ? Icons.check_circle_rounded
         : isPending
             ? Icons.hourglass_top_rounded
-            : Icons.cancel_rounded;
+            : isCancelled
+                ? Icons.block_rounded
+                : Icons.cancel_rounded;
 
     final typeLabel = request.otType == 'holiday'
         ? 'Public Holiday'
@@ -154,6 +162,24 @@ class OtTile extends StatelessWidget {
                               fontSize: 12, color: AppTheme.textMuted)),
                     ),
                   ],
+                ),
+              ),
+            ],
+            if (isPending && onCancel != null) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => onCancel!(request.id),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.danger,
+                    side: const BorderSide(color: AppTheme.danger),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Cancel Request',
+                      style: TextStyle(fontSize: 13)),
                 ),
               ),
             ],

@@ -55,4 +55,16 @@ class OtRequestService {
         })
         .timeout(const Duration(seconds: 15));
   }
+
+  // Cancel a pending request (the database only allows pending → cancelled)
+  Future<void> cancel(String requestId) async {
+    final updated = await _db
+        .from(_table)
+        .update({'Status': 'cancelled'})
+        .eq('Id', requestId)
+        .select('Id')
+        .timeout(const Duration(seconds: 15));
+
+    if ((updated as List).isEmpty) throw Exception('OT request not found.');
+  }
 }

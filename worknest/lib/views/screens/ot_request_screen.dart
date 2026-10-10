@@ -74,9 +74,45 @@ class _OtRequestScreenState extends State<OtRequestScreen> {
                       : ListView.builder(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                           itemCount: _vm.requests.length,
-                          itemBuilder: (_, i) => OtTile(request: _vm.requests[i]),
+                          itemBuilder: (_, i) => OtTile(
+                            request: _vm.requests[i],
+                            onCancel: _confirmCancel,
+                          ),
                         ),
             ),
+    );
+  }
+
+  void _confirmCancel(String requestId) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cancel OT Request',
+            style: TextStyle(fontWeight: FontWeight.w700)),
+        content: const Text('Are you sure you want to cancel this OT request?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final error = await _vm.cancel(requestId);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(error ?? 'OT request cancelled.'),
+                backgroundColor: error != null ? AppTheme.danger : AppTheme.success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ));
+            },
+            child: const Text('Yes, Cancel',
+                style: TextStyle(color: AppTheme.danger)),
+          ),
+        ],
+      ),
     );
   }
 
