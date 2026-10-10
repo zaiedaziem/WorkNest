@@ -163,7 +163,14 @@ class AttendanceViewModel extends ChangeNotifier {
       final leaves = results[1] as List<Map<String, dynamic>>;
       final holidays = results[2] as Map<String, String>;
 
-      _dayRecords = _buildDayRecords(_records, leaves, holidays);
+      _dayRecords = buildDayRecords(
+        year: _selectedMonth.year,
+        month: _selectedMonth.month,
+        today: DateTime.now(),
+        attendance: _records,
+        leaves: leaves,
+        holidays: holidays,
+      );
     } catch (e) {
       _errorMessage = friendlyError(e);
     } finally {
@@ -172,18 +179,19 @@ class AttendanceViewModel extends ChangeNotifier {
     }
   }
 
-  /// Generate one DayRecord per calendar day in the selected month.
+  /// Generate one DayRecord per calendar day in the given month.
   /// Weekends are included with DayStatus.weekend.
   /// Days are ordered Day 1 → end of month (chronological).
-  List<DayRecord> _buildDayRecords(
-    List<AttendanceModel> attendance,
-    List<Map<String, dynamic>> leaves,
-    Map<String, String> holidays,
-  ) {
-    final year = _selectedMonth.year;
-    final month = _selectedMonth.month;
+  /// Pure function (no network), so it is unit-tested.
+  static List<DayRecord> buildDayRecords({
+    required int year,
+    required int month,
+    required DateTime today,
+    required List<AttendanceModel> attendance,
+    required List<Map<String, dynamic>> leaves,
+    required Map<String, String> holidays,
+  }) {
     final lastDay = DateTime(year, month + 1, 0).day;
-    final today = DateTime.now();
     final todayOnly = DateTime(today.year, today.month, today.day);
 
     // Index attendance by date (yyyy-mm-dd key)
@@ -257,7 +265,7 @@ class AttendanceViewModel extends ChangeNotifier {
     return result;
   }
 
-  Map<String, dynamic>? _findLeaveCovering(
+  static Map<String, dynamic>? _findLeaveCovering(
     DateTime day,
     List<Map<String, dynamic>> leaves,
   ) {
@@ -273,7 +281,7 @@ class AttendanceViewModel extends ChangeNotifier {
     return null;
   }
 
-  String _dateKey(DateTime d) =>
+  static String _dateKey(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
