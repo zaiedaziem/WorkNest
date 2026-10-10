@@ -300,6 +300,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             break;
           case DayStatus.upcoming:
           case DayStatus.weekend:
+          case DayStatus.holiday:
             break;
         }
         final dur = d.attendance?.duration;

@@ -47,17 +47,29 @@ class DayCard extends StatelessWidget {
           label: 'Weekend',
           icon: Icons.weekend_rounded,
         );
+      case DayStatus.holiday:
+        return (
+          color: _holidayColor,
+          label: 'Public Holiday',
+          icon: Icons.celebration_rounded,
+        );
     }
   }
+
+  static const _holidayColor = Color(0xFF0EA5E9);
 
   @override
   Widget build(BuildContext context) {
     final isWeekend = record.status == DayStatus.weekend;
+    final isHoliday = record.status == DayStatus.holiday;
 
-    if (isWeekend) {
+    // Non-working days (weekends and public holidays) get a compact card
+    if (isWeekend || isHoliday) {
       final date = record.date;
       final dayName = DateFormat('EEE').format(date);
       final dayNum = DateFormat('d').format(date);
+      final iconColor = isHoliday ? _holidayColor : const Color(0xFFCBD5E1);
+      final textColor = isHoliday ? _holidayColor : const Color(0xFF94A3B8);
       return Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -92,14 +104,19 @@ class DayCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            const Icon(Icons.weekend_rounded,
-                size: 14, color: Color(0xFFCBD5E1)),
+            Icon(isHoliday ? Icons.celebration_rounded : Icons.weekend_rounded,
+                size: 14, color: iconColor),
             const SizedBox(width: 6),
-            const Text('Weekend',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF94A3B8))),
+            Expanded(
+              child: Text(
+                  isHoliday ? (record.holidayName ?? 'Public Holiday') : 'Weekend',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isHoliday ? FontWeight.w600 : FontWeight.w500,
+                      color: textColor)),
+            ),
           ],
         ),
       );
@@ -288,6 +305,7 @@ class DayCard extends StatelessWidget {
               color: AppTheme.textMuted),
         );
       case DayStatus.weekend:
+      case DayStatus.holiday:
         return const SizedBox.shrink();
     }
   }

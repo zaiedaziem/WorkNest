@@ -107,4 +107,34 @@ class AttendanceService {
 
     return (data as List).cast<Map<String, dynamic>>();
   }
+
+  // Nationwide Malaysian public holidays in a month, keyed by 'yyyy-mm-dd'.
+  // (State-only holidays are skipped — the company's state isn't recorded.)
+  // Returns an empty map if the holidays can't be loaded, so the attendance
+  // screen still works — holidays just show as working days.
+  Future<Map<String, String>> getPublicHolidaysForMonth(
+      int year, int month) async {
+    final from = DateTime(year, month, 1).toIso8601String().substring(0, 10);
+    final to = DateTime(year, month + 1, 0).toIso8601String().substring(0, 10);
+
+    try {
+      final data = await _supabase
+          .from('public_holidays')
+          .select('date, name')
+          .isFilter('regions', null)
+          .gte('date', from)
+          .lte('date', to);
+
+      final holidays = <String, String>{};
+      for (final h in data as List) {
+        final date = h['date'] as String;
+        final name = h['name'] as String;
+        holidays[date] =
+            holidays.containsKey(date) ? '${holidays[date]} / $name' : name;
+      }
+      return holidays;
+    } catch (_) {
+      return {};
+    }
+  }
 }

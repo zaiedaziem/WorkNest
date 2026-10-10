@@ -4,7 +4,7 @@ import '../services/attendance_service.dart';
 import '../services/error_message.dart';
 
 /// Status of a single working day in the month view.
-enum DayStatus { present, late, onLeave, absent, upcoming, weekend }
+enum DayStatus { present, late, onLeave, absent, upcoming, weekend, holiday }
 
 /// Filter options shown as chips above the list.
 enum DayFilter { all, present, late, onLeave, absent }
@@ -18,6 +18,7 @@ class DayRecord {
   final String? leaveTypeName;        // non-null for onLeave
   final bool isHalfDay;               // only relevant for onLeave
   final String? halfDayPeriod;        // 'morning' / 'afternoon'
+  final String? holidayName;          // non-null for holiday
 
   DayRecord({
     required this.date,
@@ -26,6 +27,7 @@ class DayRecord {
     this.leaveTypeName,
     this.isHalfDay = false,
     this.halfDayPeriod,
+    this.holidayName,
   });
 }
 
@@ -139,7 +141,7 @@ class AttendanceViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Parallel fetch: attendance + approved leaves
+      // Parallel fetch: attendance + approved leaves + public holidays
       final results = await Future.wait([
         _service.getMonthHistory(
           employeeId,
@@ -151,12 +153,17 @@ class AttendanceViewModel extends ChangeNotifier {
           _selectedMonth.year,
           _selectedMonth.month,
         ),
+        _service.getPublicHolidaysForMonth(
+          _selectedMonth.year,
+          _selectedMonth.month,
+        ),
       ]);
 
       _records = results[0] as List<AttendanceModel>;
       final leaves = results[1] as List<Map<String, dynamic>>;
+      final holidays = results[2] as Map<String, String>;
 
-      _dayRecords = _buildDayRecords(_records, leaves);
+      _dayRecords = _buildDayRecords(_records, leaves, holidays);
     } catch (e) {
       _errorMessage = friendlyError(e);
     } finally {
@@ -171,6 +178,7 @@ class AttendanceViewModel extends ChangeNotifier {
   List<DayRecord> _buildDayRecords(
     List<AttendanceModel> attendance,
     List<Map<String, dynamic>> leaves,
+    Map<String, String> holidays,
   ) {
     final year = _selectedMonth.year;
     final month = _selectedMonth.month;
@@ -198,6 +206,17 @@ class AttendanceViewModel extends ChangeNotifier {
 
       final key = _dateKey(day);
       final att = attByDate[key];
+
+      // 0. Public holiday (unless they clocked in that day) — not a working day
+      final holidayName = holidays[key];
+      if (holidayName != null && att == null) {
+        result.add(DayRecord(
+          date: day,
+          status: DayStatus.holiday,
+          holidayName: holidayName,
+        ));
+        continue;
+      }
 
       // 1. Approved leave wins
       final leave = _findLeaveCovering(day, leaves);
