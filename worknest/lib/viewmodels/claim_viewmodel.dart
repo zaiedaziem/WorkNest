@@ -3,6 +3,7 @@ import '../models/user_model.dart';
 import '../models/company_model.dart';
 import '../models/claim_model.dart';
 import '../services/claim_service.dart';
+import '../services/error_message.dart';
 
 class ClaimViewModel extends ChangeNotifier {
   final UserModel user;
@@ -41,7 +42,7 @@ class ClaimViewModel extends ChangeNotifier {
       _history = await _service.getHistory(user.id);
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -106,7 +107,7 @@ class ClaimViewModel extends ChangeNotifier {
       await loadData();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
       _isLoading = false;
       notifyListeners();
       return false;

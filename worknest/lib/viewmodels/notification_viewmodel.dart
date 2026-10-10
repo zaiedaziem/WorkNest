@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
+import '../services/error_message.dart';
 
 class NotificationViewModel extends ChangeNotifier {
   final String userId;
@@ -39,7 +40,7 @@ class NotificationViewModel extends ChangeNotifier {
     try {
       _notifications = await _service.getAll(userId);
     } catch (e) {
-      _error = e.toString().replaceFirst('Exception: ', '');
+      _error = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();

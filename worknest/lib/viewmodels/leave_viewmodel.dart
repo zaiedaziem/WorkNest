@@ -5,6 +5,7 @@ import '../models/leave_policy_model.dart';
 import '../models/leave_balance_model.dart';
 import '../models/leave_request_model.dart';
 import '../services/leave_service.dart';
+import '../services/error_message.dart';
 
 class LeaveViewModel extends ChangeNotifier {
   final UserModel user;
@@ -49,7 +50,7 @@ class LeaveViewModel extends ChangeNotifier {
       _history = results[2] as List<LeaveRequestModel>;
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -102,7 +103,7 @@ class LeaveViewModel extends ChangeNotifier {
       await loadData();
       return true;
     } catch (e) {
-      final msg = e.toString().replaceFirst('Exception: ', '');
+      final msg = friendlyError(e);
       debugPrint('[LeaveVM] Submit FAILED: $msg');
       _errorMessage = msg;
       _isLoading = false;
@@ -120,7 +121,7 @@ class LeaveViewModel extends ChangeNotifier {
       _successMessage = 'Leave request cancelled.';
       await loadData();
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
       _isLoading = false;
       notifyListeners();
     }

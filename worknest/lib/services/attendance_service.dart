@@ -19,31 +19,22 @@ class AttendanceService {
   }
 
   // Clock in
+  //
+  // The database decides the date, clock-in time and late/present status from
+  // its own clock, and rejects office clock-ins outside the company radius
+  // (supabase/migrations/20261010000000_secure_employee_access.sql), so the
+  // phone's clock or a modified app can't be used to cheat.
   Future<AttendanceModel> clockIn({
     required String employeeId,
     required String type, // 'office' or 'wfh'
     double? lat,
     double? lng,
-    int workStartHour = 9,
-    int workStartMinute = 0,
   }) async {
-    final now = DateTime.now().toUtc();
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-
-    // Determine if late based on company work start time
-    final localNow = DateTime.now();
-    final isLate = localNow.hour > workStartHour ||
-        (localNow.hour == workStartHour && localNow.minute >= workStartMinute);
-    final status = isLate ? 'late' : 'present';
-
     final data = await _supabase
         .from('attendance')
         .insert({
           'employee_id': employeeId,
-          'date': today,
-          'clock_in': now.toIso8601String(),
           'type': type,
-          'status': status,
           'clock_in_lat': lat,
           'clock_in_lng': lng,
         })
@@ -53,7 +44,7 @@ class AttendanceService {
     return AttendanceModel.fromMap(data);
   }
 
-  // Clock out
+  // Clock out (the database records its own time for clock_out)
   Future<AttendanceModel> clockOut(String attendanceId) async {
     final now = DateTime.now().toUtc();
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/error_message.dart';
 
 enum ForgotPasswordStep { requestOtp, verifyOtp, resetPassword, done }
 
@@ -38,7 +39,7 @@ class ForgotPasswordViewModel extends ChangeNotifier {
       _email = email;
       _step = ForgotPasswordStep.verifyOtp;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -67,7 +68,7 @@ class ForgotPasswordViewModel extends ChangeNotifier {
       await _authService.verifyOtp(_email, otpCode);
       _step = ForgotPasswordStep.resetPassword;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -86,7 +87,7 @@ class ForgotPasswordViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
       notifyListeners();
       return false;
     } finally {
@@ -104,7 +105,7 @@ class ForgotPasswordViewModel extends ChangeNotifier {
     try {
       await _authService.sendOtp(_email);
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
     } finally {
       _isLoading = false;
       notifyListeners();

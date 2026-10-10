@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/company_model.dart';
 import '../services/auth_service.dart';
+import '../services/error_message.dart';
 
 enum LoginState { idle, loading, success, error }
 
@@ -39,7 +40,7 @@ class LoginViewModel extends ChangeNotifier {
       _company = result['company'] as CompanyModel;
       _state = LoginState.success;
     } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _errorMessage = friendlyError(e);
       _state = LoginState.error;
     }
 

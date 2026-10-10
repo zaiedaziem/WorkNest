@@ -104,26 +104,9 @@ class LeaveService {
           throw Exception('Timed out inserting request. RLS policy may be blocking the insert.'),
     );
 
+    // The database recounts the days, re-checks the balance and adds them to
+    // pending_days itself, so the balance can't be changed from the app.
     debugPrint('[LeaveService] Step 2 done — insert OK');
-
-    // Update pending days in balance
-    if (balanceData != null) {
-      debugPrint('[LeaveService] Step 3 — updating pending_days...');
-      final currentPending =
-          (balanceData['pending_days'] as num?)?.toDouble() ?? 0.0;
-      await _supabase
-          .from('leave_balances')
-          .update({'pending_days': currentPending + totalDays})
-          .eq('employee_id', employeeId)
-          .eq('leave_policy_id', leavePolicyId)
-          .eq('year', year)
-          .timeout(
-            const Duration(seconds: 15),
-            onTimeout: () =>
-                throw Exception('Timed out updating balance.'),
-          );
-      debugPrint('[LeaveService] Step 3 done');
-    }
   }
 
   // ── Cancel a pending leave request ────────────────────────────────────────
@@ -140,32 +123,10 @@ class LeaveService {
       throw Exception('Only pending requests can be cancelled.');
     }
 
+    // The database returns the pending days to the balance
     await _supabase
         .from('leave_requests')
         .update({'status': 'cancelled'}).eq('id', requestId);
-
-    // Return pending days to balance
-    final year = DateTime.now().year;
-    final totalDays = (requestData['total_days'] as num?)?.toDouble() ?? 0.0;
-    final balanceData = await _supabase
-        .from('leave_balances')
-        .select()
-        .eq('employee_id', employeeId)
-        .eq('leave_policy_id', requestData['leave_policy_id'])
-        .eq('year', year)
-        .maybeSingle();
-
-    if (balanceData != null) {
-      final currentPending =
-          (balanceData['pending_days'] as num?)?.toDouble() ?? 0.0;
-      await _supabase
-          .from('leave_balances')
-          .update(
-              {'pending_days': (currentPending - totalDays).clamp(0, 9999)})
-          .eq('employee_id', employeeId)
-          .eq('leave_policy_id', requestData['leave_policy_id'])
-          .eq('year', year);
-    }
   }
 
   // ── Upload leave attachment to Supabase Storage ───────────────────────────
