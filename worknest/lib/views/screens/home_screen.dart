@@ -21,6 +21,7 @@ import '../widgets/home/mini_stat.dart';
 import '../widgets/home/recent_attendance_row.dart';
 import '../widgets/home/profile_row.dart';
 import '../widgets/home/work_type_button.dart';
+import '../../services/error_message.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel user;
@@ -74,6 +75,11 @@ class _HomeScreenState extends State<HomeScreen> {
       content: Text(message),
       backgroundColor: isError ? AppTheme.danger : AppTheme.success,
       behavior: SnackBarBehavior.floating,
+      // Offline: let the user retry straight from the message
+      action: message == noInternetMessage
+          ? SnackBarAction(
+              label: 'Retry', textColor: Colors.white, onPressed: _viewModel.loadTodayAttendance)
+          : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ));
   }

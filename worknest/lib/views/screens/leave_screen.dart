@@ -9,6 +9,7 @@ import '../widgets/leave/balance_card.dart';
 import '../widgets/leave/history_card.dart';
 import '../widgets/leave/apply_leave_sheet.dart';
 import '../widgets/claims/header_stat.dart';
+import '../../services/error_message.dart';
 
 class LeaveScreen extends StatefulWidget {
   final UserModel user;
@@ -52,6 +53,11 @@ class _LeaveScreenState extends State<LeaveScreen>
         content: Text(message),
         backgroundColor: isError ? AppTheme.danger : AppTheme.success,
         behavior: SnackBarBehavior.floating,
+        // Offline: let the user retry straight from the message
+        action: message == noInternetMessage
+            ? SnackBarAction(
+                label: 'Retry', textColor: Colors.white, onPressed: _viewModel.loadData)
+            : null,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
