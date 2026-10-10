@@ -38,14 +38,14 @@ This repository holds the **employee mobile app** (Flutter) and the **thesis**. 
 | Mobile app | Flutter (Dart), MVVM with Provider |
 | Web portal | ASP.NET Core 8 MVC, Entity Framework Core |
 | Backend | Supabase: PostgreSQL, Auth, Storage |
-| AI assistant | Groq (Llama 3.1 8B Instant), retrieval over the company's policy document |
+| AI assistant | Groq (GPT-OSS 120B) via a Supabase Edge Function, retrieval over the company's policy document |
 
 ## Architecture
 
 - **Domain-Driven Design** — the system is split into bounded contexts (attendance, leave, claims,
   payroll, notifications, knowledge base), and each has its own model and service.
 - **MVVM in the mobile app** — `views/` render the UI, `viewmodels/` hold screen state and logic, and
-  `services/` talk to Supabase and Groq. Views never call the backend directly.
+  `services/` talk to Supabase. Views never call the backend directly.
 - **One backend, two clients** — the web portal and the mobile app read and write the same Supabase
   database, so a leave approved on the web shows up on the phone immediately.
 - **Hybrid Waterfall–Agile** — requirements and system design were done up front (SRS, UML), then
@@ -55,13 +55,14 @@ This repository holds the **employee mobile app** (Flutter) and the **thesis**. 
 worknest/lib/
 ├── main.dart
 ├── models/        data classes: attendance, leave, claims, OT, payslips, users…
-├── services/      Supabase and Groq calls, one per domain
+├── services/      Supabase calls, one per domain
 ├── viewmodels/    screen state and logic (Provider ChangeNotifiers)
 ├── views/
 │   ├── screens/   one screen per feature
 │   └── widgets/   feature-specific widgets
 ├── widgets/       shared widgets
 └── theme/         app theme
+supabase/functions/chat/   AI assistant Edge Function (holds the Groq key server-side)
 Thesis/            final thesis (PDF)
 ```
 
@@ -74,7 +75,6 @@ Requirements: Flutter SDK (Dart 3.8+), and a Supabase project with the WorkNest 
    ```
    SUPABASE_URL=https://<your-project>.supabase.co
    SUPABASE_ANON_KEY=<your Supabase anon key>
-   GROQ_API_KEY=<your Groq API key>
    ```
 
 2. Install packages and run:
@@ -90,6 +90,20 @@ Requirements: Flutter SDK (Dart 3.8+), and a Supabase project with the WorkNest 
    ```bash
    flutter test
    ```
+
+## AI assistant backend
+
+The chatbot runs as a Supabase Edge Function (`supabase/functions/chat`). The app calls it with the
+signed-in user's session; the function checks the user, picks the relevant pages of the policy
+document, and calls Groq. The Groq API key is a Supabase secret, so it is never shipped in the APK.
+
+Deploy it with the [Supabase CLI](https://supabase.com/docs/guides/cli):
+
+```bash
+supabase login
+supabase secrets set GROQ_API_KEY=<your Groq API key> --project-ref <your-project-ref>
+supabase functions deploy chat --project-ref <your-project-ref>
+```
 
 ## Thesis
 
