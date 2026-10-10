@@ -183,7 +183,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
+                    color: AppTheme.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -191,7 +191,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Apply Leave',
                       style: TextStyle(
@@ -203,7 +203,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded,
+                    icon: Icon(Icons.close_rounded,
                         color: AppTheme.textMuted, size: 22),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -213,7 +213,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
               const SizedBox(height: 20),
 
               // Leave type
-              const Text(
+              Text(
                 'Leave Type',
                 style: TextStyle(
                   fontSize: 13,
@@ -225,15 +225,15 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                  border: Border.all(color: AppTheme.border),
                   borderRadius: BorderRadius.circular(10),
-                  color: Colors.white,
+                  color: AppTheme.surface,
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<LeavePolicyModel>(
                     value: _selectedPolicy,
                     isExpanded: true,
-                    hint: const Text(
+                    hint: Text(
                       'Select leave type',
                       style: TextStyle(color: AppTheme.textMuted),
                     ),
@@ -282,7 +282,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                               if (eligible && balance != null)
                                 Text(
                                   '${balance.remainingDays % 1 == 0 ? balance.remainingDays.toInt() : balance.remainingDays} days left',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     color: AppTheme.textMuted,
                                   ),
@@ -351,7 +351,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Half Day',
                             style: TextStyle(
                               fontSize: 13,
@@ -360,7 +360,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                             ),
                           ),
                           if (!_selectedPolicy!.allowHalfDay)
-                            const Text(
+                            Text(
                               'Not available for this leave type',
                               style: TextStyle(
                                 fontSize: 11,
@@ -408,7 +408,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
 
               const SizedBox(height: 4),
 
-              const Text(
+              Text(
                 'Select Date(s)',
                 style: TextStyle(
                   fontSize: 13,
@@ -482,7 +482,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
               // Document Upload
               Row(
                 children: [
-                  const Text(
+                  Text(
                     'Supporting Document',
                     style: TextStyle(
                       fontSize: 13,
@@ -501,7 +501,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                       ),
                     )
                   else
-                    const Text(
+                    Text(
                       '(optional)',
                       style: TextStyle(
                         fontSize: 11,
@@ -519,7 +519,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                     border: Border.all(
                       color: _pickedFile != null
                           ? AppTheme.primary
-                          : const Color(0xFFE5E7EB),
+                          : AppTheme.border,
                     ),
                     borderRadius: BorderRadius.circular(10),
                     color: _pickedFile != null
@@ -565,7 +565,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                               _pickedFile != null
                                   ? '${(_pickedFile!.size / 1024).toStringAsFixed(1)} KB'
                                   : 'PDF, JPG or PNG • max 5 MB',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 color: AppTheme.textMuted,
                               ),
@@ -579,7 +579,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                             _pickedFile = null;
                             _documentError = null;
                           }),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close_rounded,
                             size: 18,
                             color: AppTheme.textMuted,
@@ -597,7 +597,7 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
 
               const SizedBox(height: 16),
 
-              const Text(
+              Text(
                 'Reason (optional)',
                 style: TextStyle(
                   fontSize: 13,
@@ -611,17 +611,17 @@ class _ApplyLeaveSheetState extends State<ApplyLeaveSheet> {
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: 'Enter reason for leave...',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 13,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    borderSide: BorderSide(color: AppTheme.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    borderSide: BorderSide(color: AppTheme.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),

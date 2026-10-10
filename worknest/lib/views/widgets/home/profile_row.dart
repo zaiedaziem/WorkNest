@@ -28,20 +28,20 @@ class ProfileRow extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text('$label: ',
-              style: const TextStyle(fontSize: 13, color: AppTheme.textMuted)),
+              style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(value,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textDark),
                     overflow: TextOverflow.ellipsis),
                 if (note != null)
                   Text(note!,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 11, color: AppTheme.textMuted)),
               ],
             ),

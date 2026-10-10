@@ -17,12 +17,12 @@ class PayslipCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isReleased
-                ? const Color(0xFFBBF7D0)
-                : const Color(0xFFF3F4F6),
+                ? AppTheme.success.withValues(alpha: 0.35)
+                : AppTheme.surfaceAlt,
           ),
           boxShadow: [
             BoxShadow(
@@ -41,7 +41,7 @@ class PayslipCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isReleased
                       ? AppTheme.success.withValues(alpha: 0.1)
-                      : const Color(0xFFF3F4F6),
+                      : AppTheme.surfaceAlt,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -58,7 +58,7 @@ class PayslipCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(payslip.monthName,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: AppTheme.textDark)),
@@ -68,8 +68,8 @@ class PayslipCard extends StatelessWidget {
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: isReleased
-                            ? const Color(0xFFF0FDF4)
-                            : const Color(0xFFFFFBEB),
+                            ? AppTheme.success.withValues(alpha: 0.10)
+                            : AppTheme.warning.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

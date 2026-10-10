@@ -231,7 +231,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 style: const TextStyle(fontSize: 12),
                               ),
                               onPressed: () => _send(q),
-                              backgroundColor: const Color(0xFFEDE9FE),
+                              backgroundColor: AppTheme.primary.withValues(alpha: 0.12),
                               labelStyle: const TextStyle(
                                 color: Color(0xFF6D28D9),
                               ),
@@ -245,7 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
           // Input bar
           Container(
-            color: Colors.white,
+            color: AppTheme.surface,
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
             child: SafeArea(
               top: false,
@@ -260,7 +260,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Ask a question...',
                         filled: true,
-                        fillColor: const Color(0xFFF3F4F6),
+                        fillColor: AppTheme.surfaceAlt,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -325,8 +325,8 @@ class _BubbleWidget extends StatelessWidget {
             Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEDE9FE),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -349,7 +349,7 @@ class _BubbleWidget extends StatelessWidget {
                   bottomRight: Radius.circular(isAi ? 16 : 4),
                 ),
                 border: isAi
-                    ? Border.all(color: const Color(0xFFECE7FB))
+                    ? Border.all(color: AppTheme.primary.withValues(alpha: 0.12))
                     : null,
                 boxShadow: isAi
                     ? [
@@ -366,26 +366,26 @@ class _BubbleWidget extends StatelessWidget {
                       data: text,
                       shrinkWrap: true,
                       styleSheet: MarkdownStyleSheet(
-                        p: const TextStyle(
+                        p: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF1F2233),
+                          color: AppTheme.textDark,
                           height: 1.5,
                         ),
-                        strong: const TextStyle(
+                        strong: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF1F2233),
+                          color: AppTheme.textDark,
                           fontWeight: FontWeight.w700,
                           height: 1.5,
                         ),
-                        em: const TextStyle(
+                        em: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF1F2233),
+                          color: AppTheme.textDark,
                           fontStyle: FontStyle.italic,
                           height: 1.5,
                         ),
-                        listBullet: const TextStyle(
+                        listBullet: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF1F2233),
+                          color: AppTheme.textDark,
                         ),
                         listIndent: 18,
                         blockSpacing: 6,
@@ -418,8 +418,8 @@ class _TypingIndicator extends StatelessWidget {
         Container(
           width: 32,
           height: 32,
-          decoration: const BoxDecoration(
-            color: Color(0xFFEDE9FE),
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -432,7 +432,7 @@ class _TypingIndicator extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F3FF),
+            color: AppTheme.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
           ),
           child: const SizedBox(
@@ -492,8 +492,8 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
         child: Container(
           width: 7,
           height: 7,
-          decoration: const BoxDecoration(
-            color: Color(0xFF9CA3AF),
+          decoration: BoxDecoration(
+            color: AppTheme.textFaint,
             shape: BoxShape.circle,
           ),
         ),

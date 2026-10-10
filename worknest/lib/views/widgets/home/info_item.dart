@@ -21,13 +21,13 @@ class HomeInfoItem extends StatelessWidget {
         Icon(icon, color: AppTheme.primary, size: 18),
         const SizedBox(height: 4),
         Text(label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textMuted)),
+            style: TextStyle(fontSize: 10, color: AppTheme.textMuted)),
         const SizedBox(height: 2),
         Text(value,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.textDark)),

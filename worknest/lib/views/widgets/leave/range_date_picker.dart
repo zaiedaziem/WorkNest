@@ -24,7 +24,7 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
   late DateTime _focusedMonth;
 
   static const _weekLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  static const _rangeColor = Color(0xFFCCF3F8);
+  static final _rangeColor = const Color(0xFF06B6D4).withValues(alpha: 0.18);
 
   @override
   void initState() {
@@ -105,7 +105,7 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
               ],
             ),
             if (isWeekend && !isStart && !isEnd)
-              Container(color: const Color(0xFFF3F4F6)),
+              Container(color: AppTheme.surfaceAlt),
             Center(
               child: Container(
                 width: 36,
@@ -132,9 +132,9 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
                       color: (isStart || isEnd)
                           ? Colors.white
                           : isWeekend
-                              ? const Color(0xFFD1D5DB)
+                              ? AppTheme.textFaint
                               : isDisabled
-                                  ? const Color(0xFFD1D5DB)
+                                  ? AppTheme.textFaint
                                   : isToday
                                       ? AppTheme.primary
                                       : AppTheme.textDark,
@@ -159,9 +159,9 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: AppTheme.border),
       ),
       padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
       child: Column(
@@ -181,7 +181,7 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
               ),
               Text(
                 DateFormat('MMMM yyyy').format(_focusedMonth),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textDark,
@@ -212,7 +212,7 @@ class _RangeDatePickerState extends State<RangeDatePicker> {
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: (e.key == 0 || e.key == 6)
-                              ? const Color(0xFFD1D5DB)
+                              ? AppTheme.textFaint
                               : AppTheme.textMuted,
                         ),
                       ),

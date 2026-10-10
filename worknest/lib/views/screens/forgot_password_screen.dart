@@ -68,7 +68,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         leading: _viewModel.step == ForgotPasswordStep.done
             ? null
             : IconButton(
-                icon: const Icon(Icons.arrow_back_ios_rounded,
+                icon: Icon(Icons.arrow_back_ios_rounded,
                     color: AppTheme.textDark, size: 20),
                 onPressed: () {
                   if (_viewModel.step == ForgotPasswordStep.requestOtp) {
@@ -140,7 +140,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           controller: _companyCodeController,
           textInputAction: TextInputAction.next,
           textCapitalization: TextCapitalization.none,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'e.g. acme',
             prefixIcon:
                 Icon(Icons.business_rounded, color: AppTheme.textMuted),
@@ -155,7 +155,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           controller: _employeeIdController,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _submitStep1(),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'e.g. EMP001',
             prefixIcon: Icon(Icons.badge_rounded, color: AppTheme.textMuted),
           ),
@@ -261,14 +261,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         keyboardType: TextInputType.number,
         maxLength: 1,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        style: const TextStyle(
+        style: TextStyle(
             fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.textDark),
         decoration: InputDecoration(
           counterText: '',
           contentPadding: EdgeInsets.zero,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            borderSide: BorderSide(color: AppTheme.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -316,7 +316,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           decoration: InputDecoration(
             hintText: 'Enter new password',
             prefixIcon:
-                const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted),
+                Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureNew
@@ -341,7 +341,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           decoration: InputDecoration(
             hintText: 'Repeat new password',
             prefixIcon:
-                const Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted),
+                Icon(Icons.lock_outline_rounded, color: AppTheme.textMuted),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureConfirm
@@ -428,7 +428,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   color: AppTheme.success, size: 44),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Password Reset!',
               style: TextStyle(
                   fontSize: 24,
@@ -436,7 +436,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   color: AppTheme.textDark),
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Your password has been updated.\nYou can now log in with your new password.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textMuted, fontSize: 14, height: 1.6),
@@ -486,13 +486,13 @@ class _StepHeader extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(title,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
                 color: AppTheme.textDark)),
         const SizedBox(height: 8),
         Text(subtitle,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 14, color: AppTheme.textMuted, height: 1.5)),
       ],
     );
@@ -506,7 +506,7 @@ class _FieldLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(label,
-        style: const TextStyle(
+        style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,
             color: AppTheme.textDark));

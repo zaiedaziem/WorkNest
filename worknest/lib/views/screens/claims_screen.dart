@@ -154,11 +154,11 @@ class _ClaimsScreenState extends State<ClaimsScreen> {
                       Icon(Icons.receipt_long_rounded,
                           size: 64, color: AppTheme.textMuted.withValues(alpha: 0.3)),
                       const SizedBox(height: 16),
-                      const Text('No claims yet',
+                      Text('No claims yet',
                           style: TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
                       const SizedBox(height: 6),
-                      const Text('Tap "Submit Claim" to get started',
+                      Text('Tap "Submit Claim" to get started',
                           style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
                     ],
                   ),

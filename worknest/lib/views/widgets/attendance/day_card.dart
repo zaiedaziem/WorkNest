@@ -43,7 +43,7 @@ class DayCard extends StatelessWidget {
         );
       case DayStatus.weekend:
         return (
-          color: const Color(0xFFCBD5E1),
+          color: AppTheme.textFaint,
           label: 'Weekend',
           icon: Icons.weekend_rounded,
         );
@@ -68,15 +68,15 @@ class DayCard extends StatelessWidget {
       final date = record.date;
       final dayName = DateFormat('EEE').format(date);
       final dayNum = DateFormat('d').format(date);
-      final iconColor = isHoliday ? _holidayColor : const Color(0xFFCBD5E1);
-      final textColor = isHoliday ? _holidayColor : const Color(0xFF94A3B8);
+      final iconColor = isHoliday ? _holidayColor : AppTheme.textFaint;
+      final textColor = isHoliday ? _holidayColor : AppTheme.textFaint;
       return Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: AppTheme.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE9EEF3)),
+          border: Border.all(color: AppTheme.surfaceAlt),
         ),
         child: Row(
           children: [
@@ -84,20 +84,20 @@ class DayCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFFE9EEF3),
+                color: AppTheme.surfaceAlt,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(dayName,
-                      style: const TextStyle(
-                          color: Color(0xFF94A3B8),
+                      style: TextStyle(
+                          color: AppTheme.textFaint,
                           fontSize: 10,
                           fontWeight: FontWeight.w600)),
                   Text(dayNum,
-                      style: const TextStyle(
-                          color: Color(0xFF94A3B8),
+                      style: TextStyle(
+                          color: AppTheme.textFaint,
                           fontSize: 16,
                           fontWeight: FontWeight.w700)),
                 ],
@@ -137,7 +137,7 @@ class DayCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: isAbsent
             ? Border.all(color: AppTheme.danger.withValues(alpha: 0.25))
@@ -167,7 +167,7 @@ class DayCard extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                color: isMuted ? const Color(0xFFF3F4F6) : null,
+                color: isMuted ? AppTheme.surfaceAlt : null,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -221,11 +221,11 @@ class DayCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text('Duration',
+                  Text('Duration',
                       style: TextStyle(
                           fontSize: 10, color: AppTheme.textMuted)),
                   Text(att.durationText,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textDark)),
@@ -235,7 +235,7 @@ class DayCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text('Half day',
+                  Text('Half day',
                       style: TextStyle(
                           fontSize: 10, color: AppTheme.textMuted)),
                   Text(record.halfDayPeriod ?? '-',
@@ -266,7 +266,7 @@ class DayCard extends StatelessWidget {
               color: AppTheme.success,
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward_rounded,
+            Icon(Icons.arrow_forward_rounded,
                 size: 12, color: AppTheme.textMuted),
             const SizedBox(width: 8),
             DayTimeChip(
@@ -297,7 +297,7 @@ class DayCard extends StatelessWidget {
               color: AppTheme.danger),
         );
       case DayStatus.upcoming:
-        return const Text(
+        return Text(
           'Scheduled working day',
           style: TextStyle(
               fontSize: 12,

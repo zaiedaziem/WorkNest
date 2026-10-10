@@ -53,7 +53,7 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
 
   InputDecoration _decoration(String hint) => InputDecoration(
         hintText: hint,
-        prefixIcon: const Icon(Icons.lock_rounded, color: AppTheme.textMuted),
+        prefixIcon: Icon(Icons.lock_rounded, color: AppTheme.textMuted),
         suffixIcon: IconButton(
           icon: Icon(
             _obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
@@ -75,13 +75,13 @@ class _ChangePasswordSheetState extends State<ChangePasswordSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Change Password',
+            Text('Change Password',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textDark)),
             const SizedBox(height: 4),
-            const Text('Enter your current password, then choose a new one.',
+            Text('Enter your current password, then choose a new one.',
                 style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
             const SizedBox(height: 20),
             TextFormField(

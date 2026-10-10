@@ -32,7 +32,7 @@ class ClaimCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -59,7 +59,7 @@ class ClaimCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(claim.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
                             color: AppTheme.textDark),
@@ -94,12 +94,12 @@ class ClaimCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(Icons.calendar_today_rounded,
+              Icon(Icons.calendar_today_rounded,
                   size: 12, color: AppTheme.textMuted),
               const SizedBox(width: 4),
               Text(DateFormat('d MMM yyyy').format(claim.claimDate),
                   style:
-                      const TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+                      TextStyle(fontSize: 12, color: AppTheme.textMuted)),
               const Spacer(),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -137,7 +137,7 @@ class ClaimCard extends StatelessWidget {
                       claim.status != 'approved')
                     Text(
                         'Policy: RM ${claim.suggestedAmount!.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 10, color: AppTheme.textMuted)),
                 ],
               ),
@@ -160,10 +160,10 @@ class ClaimCard extends StatelessWidget {
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(Icons.attach_file_rounded,
+                Icon(Icons.attach_file_rounded,
                     size: 12, color: AppTheme.textMuted),
                 const SizedBox(width: 4),
-                const Text('Receipt attached',
+                Text('Receipt attached',
                     style:
                         TextStyle(fontSize: 11, color: AppTheme.textMuted)),
               ],

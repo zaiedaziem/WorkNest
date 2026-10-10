@@ -24,7 +24,7 @@ class TransportChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppTheme.primary : Colors.white,
           border: Border.all(
-              color: selected ? AppTheme.primary : const Color(0xFFE5E7EB)),
+              color: selected ? AppTheme.primary : AppTheme.border),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(label,

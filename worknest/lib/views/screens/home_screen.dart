@@ -110,13 +110,13 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Clock In',
+            Text('Clock In',
                 style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textDark)),
             const SizedBox(height: 6),
-            const Text('Where are you working from today?',
+            Text('Where are you working from today?',
                 style: TextStyle(color: AppTheme.textMuted, fontSize: 14)),
             const SizedBox(height: 24),
             WorkTypeButton(
@@ -310,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -358,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _verticalDivider() => Container(
         width: 1,
         height: 36,
-        color: const Color(0xFFE5E7EB),
+        color: AppTheme.border,
       );
 
   // ── Attendance Card ───────────────────────────────────────────────────────
@@ -369,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -399,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: AppTheme.primary, size: 20),
                     ),
                     const SizedBox(width: 10),
-                    const Text("Today's Attendance",
+                    Text("Today's Attendance",
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -419,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          const Divider(height: 1, color: Color(0xFFF3F4F6)),
+          Divider(height: 1, color: AppTheme.surfaceAlt),
 
           // Clock in/out times
           Padding(
@@ -566,7 +566,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Quick Actions',
+        Text('Quick Actions',
             style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
@@ -663,7 +663,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Recent Attendance',
+            Text('Recent Attendance',
                 style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -724,11 +724,11 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              border: Border.all(color: AppTheme.border),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.info_outline_rounded,
                     color: AppTheme.textMuted, size: 18),
@@ -841,7 +841,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFE5E7EB),
+                color: AppTheme.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -857,13 +857,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             Text(widget.user.fullName,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textDark)),
             if (widget.user.position != null)
               Text(widget.user.position!,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13, color: AppTheme.textMuted)),
             const SizedBox(height: 20),
             ProfileRow(
@@ -886,6 +886,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 note: 'Contact HR to change'),
             const SizedBox(height: 8),
             const Divider(),
+            // Appearance: follow the phone, or force light / dark
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: AppTheme.themeMode,
+              builder: (_, mode, __) => ListTile(
+                leading: const Icon(Icons.dark_mode_rounded, color: AppTheme.primary),
+                title: const Text('Appearance',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                trailing: SegmentedButton<ThemeMode>(
+                  showSelectedIcon: false,
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  segments: const [
+                    ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
+                    ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode_rounded, size: 16)),
+                    ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode_rounded, size: 16)),
+                  ],
+                  selected: {mode},
+                  onSelectionChanged: (s) => AppTheme.setThemeMode(s.first),
+                ),
+              ),
+            ),
             ListTile(
               leading:
                   const Icon(Icons.lock_reset_rounded, color: AppTheme.primary),

@@ -123,8 +123,8 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SingleChildScrollView(
@@ -147,7 +147,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
               ),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Submit OT Request',
                       style: TextStyle(
@@ -159,7 +159,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded,
+                    icon: Icon(Icons.close_rounded,
                         color: AppTheme.textMuted, size: 22),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -169,7 +169,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
               const SizedBox(height: 20),
 
               // Date picker
-              const Text(
+              Text(
                 'Date',
                 style: TextStyle(
                   fontSize: 13,
@@ -191,14 +191,14 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                       const SizedBox(width: 10),
                       Text(
                         DateFormat('dd MMM yyyy').format(_date),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textDark,
                         ),
                       ),
                       const Spacer(),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right_rounded,
                         color: AppTheme.textMuted,
                       ),
@@ -213,7 +213,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
               Text(
                 'OT must be outside office hours (${widget.company.workStartTimeText} - '
                 '${widget.company.workEndTimeText})',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: AppTheme.textMuted,
                   fontStyle: FontStyle.italic,
@@ -228,7 +228,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Start Time',
                           style: TextStyle(
                             fontSize: 13,
@@ -250,7 +250,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                                 const SizedBox(width: 8),
                                 Text(
                                   _startTime.format(context),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                     color: AppTheme.textDark,
@@ -268,7 +268,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'End Time',
                           style: TextStyle(
                             fontSize: 13,
@@ -290,7 +290,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                                 const SizedBox(width: 8),
                                 Text(
                                   _endTime.format(context),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                     color: AppTheme.textDark,
@@ -324,7 +324,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
               const SizedBox(height: 14),
 
               // OT Type chips
-              const Text(
+              Text(
                 'OT Type',
                 style: TextStyle(
                   fontSize: 13,
@@ -345,7 +345,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
               const SizedBox(height: 14),
 
               // Reason
-              const Text(
+              Text(
                 'Reason',
                 style: TextStyle(
                   fontSize: 13,
@@ -359,16 +359,16 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: 'e.g. Urgent project deadline',
-                  hintStyle: const TextStyle(color: AppTheme.textMuted),
+                  hintStyle: TextStyle(color: AppTheme.textMuted),
                   filled: true,
-                  fillColor: const Color(0xFFF9FAFB),
+                  fillColor: AppTheme.surfaceAlt,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    borderSide: BorderSide(color: AppTheme.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                    borderSide: BorderSide(color: AppTheme.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -386,7 +386,7 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
                       horizontal: 14, vertical: 10),
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: AppTheme.danger.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.red.shade200),
                   ),
@@ -450,9 +450,9 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppTheme.surfaceAlt,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: AppTheme.border),
       ),
       child: child,
     );
@@ -471,10 +471,10 @@ class _SubmitOtSheetState extends State<SubmitOtSheet> {
           decoration: BoxDecoration(
             color: selected
                 ? AppTheme.primary.withValues(alpha: 0.08)
-                : const Color(0xFFF9FAFB),
+                : AppTheme.surfaceAlt,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: selected ? AppTheme.primary : const Color(0xFFE5E7EB),
+              color: selected ? AppTheme.primary : AppTheme.border,
               width: selected ? 1.5 : 1,
             ),
           ),

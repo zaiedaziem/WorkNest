@@ -111,7 +111,8 @@ class _LoginScreenState extends State<LoginScreen>
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.white, // logo badge stays white on the purple header
+
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
@@ -192,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ],
 
                     // Company Code
-                    const Text('Company Code',
+                    Text('Company Code',
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -201,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen>
                     TextFormField(
                       controller: _companyCodeController,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'e.g. myholistic',
                         prefixIcon: Icon(Icons.business_rounded,
                             color: AppTheme.textMuted),
@@ -213,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 16),
 
                     // Employee ID
-                    const Text('Employee ID',
+                    Text('Employee ID',
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -222,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen>
                     TextFormField(
                       controller: _employeeIdController,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'e.g. EMP001',
                         prefixIcon: Icon(Icons.badge_rounded,
                             color: AppTheme.textMuted),
@@ -234,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 16),
 
                     // Password
-                    const Text('Password',
+                    Text('Password',
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -247,7 +248,7 @@ class _LoginScreenState extends State<LoginScreen>
                       onFieldSubmitted: (_) => _login(),
                       decoration: InputDecoration(
                         hintText: 'Enter your password',
-                        prefixIcon: const Icon(Icons.lock_rounded,
+                        prefixIcon: Icon(Icons.lock_rounded,
                             color: AppTheme.textMuted),
                         suffixIcon: IconButton(
                           icon: Icon(

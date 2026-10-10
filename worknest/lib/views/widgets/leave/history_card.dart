@@ -27,7 +27,7 @@ class HistoryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -45,7 +45,7 @@ class HistoryCard extends StatelessWidget {
             children: [
               Text(
                 request.leavePolicyName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                   color: AppTheme.textDark,
@@ -75,7 +75,7 @@ class HistoryCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.calendar_today_rounded,
                 size: 13,
                 color: AppTheme.textMuted,
@@ -85,10 +85,10 @@ class HistoryCard extends StatelessWidget {
                 request.startDate == request.endDate
                     ? DateFormat('d MMM yyyy').format(request.startDate)
                     : '${DateFormat('d MMM').format(request.startDate)} – ${DateFormat('d MMM yyyy').format(request.endDate)}',
-                style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
               ),
               const SizedBox(width: 12),
-              const Icon(
+              Icon(
                 Icons.access_time_rounded,
                 size: 13,
                 color: AppTheme.textMuted,
@@ -98,7 +98,7 @@ class HistoryCard extends StatelessWidget {
                 request.isHalfDay
                     ? '½ day (${request.halfDayPeriod})'
                     : '${request.totalDays % 1 == 0 ? request.totalDays.toInt() : request.totalDays} day(s)',
-                style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
               ),
             ],
           ),
@@ -106,7 +106,7 @@ class HistoryCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               request.reason!,
-              style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+              style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

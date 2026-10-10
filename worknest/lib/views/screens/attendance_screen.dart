@@ -71,7 +71,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Attendance',
+          Text('Attendance',
               style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -176,7 +176,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ),
         ),
         Text(month,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.textDark)),
@@ -241,7 +241,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         Text(
           '${filtered.length} day${filtered.length == 1 ? '' : 's'}'
           '${_viewModel.filter != DayFilter.all ? ' · filtered' : ''}',
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppTheme.textMuted),
@@ -338,7 +338,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             ),
             const SizedBox(height: 16),
             Text(isFiltered ? 'No matches' : 'No working days',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.textDark)),
@@ -350,7 +350,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   : 'No working days found for '
                       '${DateFormat('MMMM yyyy').format(_viewModel.selectedMonth)}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
+              style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
             ),
           ],
         ),
@@ -369,7 +369,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             const SizedBox(height: 12),
             Text(_viewModel.errorMessage!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppTheme.textMuted)),
+                style: TextStyle(color: AppTheme.textMuted)),
             const SizedBox(height: 16),
             ElevatedButton(
                 onPressed: _viewModel.loadMonth,

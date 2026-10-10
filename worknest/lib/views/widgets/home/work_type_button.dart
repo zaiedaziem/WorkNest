@@ -50,7 +50,7 @@ class WorkTypeButton extends StatelessWidget {
                         fontSize: 15,
                         color: color)),
                 Text(subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 12, color: AppTheme.textMuted)),
               ],
             ),

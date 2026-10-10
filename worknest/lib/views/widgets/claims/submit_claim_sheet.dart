@@ -286,7 +286,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
               border: Border.all(
                   color: selected
                       ? AppTheme.primary
-                      : const Color(0xFFE5E7EB)),
+                      : AppTheme.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -390,10 +390,10 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
         _numField(_amountCtrl, '0.00'),
         const SizedBox(height: 6),
         if (_transportMode == 'flight')
-          const Text('Economy class only. Receipt required.',
+          Text('Economy class only. Receipt required.',
               style: TextStyle(fontSize: 11, color: AppTheme.textMuted))
         else
-          const Text('Actual cost. Receipt required.',
+          Text('Actual cost. Receipt required.',
               style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
       ],
     ];
@@ -432,9 +432,9 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                       horizontal: 12, vertical: 13),
                   decoration: BoxDecoration(
                       border:
-                          Border.all(color: const Color(0xFFE5E7EB)),
+                          Border.all(color: AppTheme.border),
                       borderRadius: BorderRadius.circular(10),
-                      color: Colors.white),
+                      color: AppTheme.surface),
                   child: Row(
                     children: [
                       Icon(
@@ -445,7 +445,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                           size: 20),
                       const SizedBox(width: 6),
                       Text(_hasReceipt ? 'Yes' : 'No',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 13, color: AppTheme.textDark)),
                     ],
                   ),
@@ -463,7 +463,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
             '${_nightsCtrl.text} night(s))'),
       ] else if (_destinationType != 'domestic') ...[
         const SizedBox(height: 6),
-        const Text('Overseas: standard room, actual cost with receipt.',
+        Text('Overseas: standard room, actual cost with receipt.',
             style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
         const SizedBox(height: 8),
         _sectionLabel('Actual Amount (RM)'),
@@ -506,9 +506,9 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                       horizontal: 12, vertical: 13),
                   decoration: BoxDecoration(
                       border:
-                          Border.all(color: const Color(0xFFE5E7EB)),
+                          Border.all(color: AppTheme.border),
                       borderRadius: BorderRadius.circular(10),
-                      color: Colors.white),
+                      color: AppTheme.surface),
                   child: Row(
                     children: [
                       Icon(
@@ -519,7 +519,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                           size: 20),
                       const SizedBox(width: 6),
                       Text(_isOvernightStay ? 'Yes' : 'No (½ rate)',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12, color: AppTheme.textDark)),
                     ],
                   ),
@@ -537,12 +537,12 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
           padding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              border: Border.all(color: AppTheme.border),
               borderRadius: BorderRadius.circular(10),
-              color: Colors.white),
+              color: AppTheme.surface),
           child: Row(
             children: [
-              const Icon(Icons.access_time_rounded,
+              Icon(Icons.access_time_rounded,
                   size: 18, color: AppTheme.textMuted),
               const SizedBox(width: 8),
               Text(
@@ -589,7 +589,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
         padding: const EdgeInsets.all(10),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F0FF),
+          color: AppTheme.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
               color: const Color(0xFF7C3AED).withValues(alpha: 0.2)),
@@ -613,7 +613,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
       _numField(_overseasTransportCtrl, '0.00',
           onChanged: (_) => setState(() {})),
       const SizedBox(height: 4),
-      const Text('To/from destination — flight, taxi, etc.',
+      Text('To/from destination — flight, taxi, etc.',
           style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
       const SizedBox(height: 12),
       _sectionLabel('Official Phone Calls (RM)'),
@@ -664,7 +664,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                 border: Border.all(
                     color: sel
                         ? AppTheme.primary
-                        : const Color(0xFFE5E7EB)),
+                        : AppTheme.border),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
@@ -757,7 +757,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
   Widget _sectionLabel(String text) => Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Text(text,
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppTheme.textDark)));
@@ -775,13 +775,13 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle:
-            const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+            TextStyle(color: AppTheme.textMuted, fontSize: 13),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+            borderSide: BorderSide(color: AppTheme.border)),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+            borderSide: BorderSide(color: AppTheme.border)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: AppTheme.primary)),
@@ -825,13 +825,13 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: const Color(0xFFE5E7EB),
+                        color: AppTheme.border,
                         borderRadius: BorderRadius.circular(2))),
               ),
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text('Submit Claim',
                         style: TextStyle(
                             fontSize: 20,
@@ -840,7 +840,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded,
+                    icon: Icon(Icons.close_rounded,
                         color: AppTheme.textMuted, size: 22),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -865,16 +865,16 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                         'e.g. Outstation Allowance — Penang',
                       _ => 'e.g. Conference registration fee',
                     },
-                    hintStyle: const TextStyle(
+                    hintStyle: TextStyle(
                         color: AppTheme.textMuted, fontSize: 13),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
-                            const BorderSide(color: Color(0xFFE5E7EB))),
+                            BorderSide(color: AppTheme.border)),
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
-                            const BorderSide(color: Color(0xFFE5E7EB))),
+                            BorderSide(color: AppTheme.border)),
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
@@ -902,15 +902,15 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                         horizontal: 12, vertical: 14),
                     decoration: BoxDecoration(
                         border: Border.all(
-                            color: const Color(0xFFE5E7EB)),
+                            color: AppTheme.border),
                         borderRadius: BorderRadius.circular(10),
-                        color: Colors.white),
+                        color: AppTheme.surface),
                     child: Row(children: [
-                      const Icon(Icons.calendar_today_rounded,
+                      Icon(Icons.calendar_today_rounded,
                           size: 16, color: AppTheme.textMuted),
                       const SizedBox(width: 8),
                       Text(DateFormat('d MMM yyyy').format(_claimDate),
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 13, color: AppTheme.textDark)),
                     ]),
                   ),
@@ -926,16 +926,16 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                   maxLines: 2,
                   decoration: InputDecoration(
                     hintText: 'Additional notes...',
-                    hintStyle: const TextStyle(
+                    hintStyle: TextStyle(
                         color: AppTheme.textMuted, fontSize: 13),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
-                            const BorderSide(color: Color(0xFFE5E7EB))),
+                            BorderSide(color: AppTheme.border)),
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
-                            const BorderSide(color: Color(0xFFE5E7EB))),
+                            BorderSide(color: AppTheme.border)),
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide:
@@ -959,7 +959,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                       border: Border.all(
                         color: _pickedFile != null
                             ? AppTheme.success.withValues(alpha: 0.4)
-                            : const Color(0xFFE5E7EB),
+                            : AppTheme.border,
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -996,7 +996,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                           GestureDetector(
                             onTap: () =>
                                 setState(() => _pickedFile = null),
-                            child: const Icon(Icons.close_rounded,
+                            child: Icon(Icons.close_rounded,
                                 size: 16, color: AppTheme.textMuted),
                           ),
                       ],
@@ -1004,7 +1004,7 @@ class _SubmitClaimSheetState extends State<SubmitClaimSheet> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'Please keep the original receipt(s) safe — HR may request them for verification.',
                   style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
                 ),

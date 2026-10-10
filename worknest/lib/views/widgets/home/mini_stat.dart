@@ -21,7 +21,7 @@ class MiniStat extends StatelessWidget {
             style: TextStyle(
                 fontSize: 20, fontWeight: FontWeight.w800, color: color)),
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 11,
                 color: AppTheme.textMuted,
                 fontWeight: FontWeight.w500)),

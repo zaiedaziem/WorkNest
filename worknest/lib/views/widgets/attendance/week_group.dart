@@ -68,7 +68,7 @@ class WeekHeader extends StatelessWidget {
               _buildSummaryLine(hoursLabel),
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textMuted,

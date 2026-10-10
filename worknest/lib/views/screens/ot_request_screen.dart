@@ -142,7 +142,7 @@ class _OtRequestScreenState extends State<OtRequestScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Couldn\'t load OT requests',
                     style: TextStyle(
                       fontSize: 18,
@@ -154,7 +154,7 @@ class _OtRequestScreenState extends State<OtRequestScreen> {
                   Text(
                     message,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
+                    style: TextStyle(fontSize: 14, color: AppTheme.textMuted),
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
@@ -190,7 +190,7 @@ class _OtRequestScreenState extends State<OtRequestScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No OT requests yet',
             style: TextStyle(
               fontSize: 18,
@@ -199,7 +199,7 @@ class _OtRequestScreenState extends State<OtRequestScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Tap the button below to submit one.',
             style: TextStyle(fontSize: 14, color: AppTheme.textMuted),
           ),

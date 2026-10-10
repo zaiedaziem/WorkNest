@@ -168,7 +168,7 @@ class _LeaveScreenState extends State<LeaveScreen>
 
   Widget _buildTabBar() {
     return Container(
-      color: Colors.white,
+      color: AppTheme.surface,
       child: TabBar(
         controller: _tabController,
         labelColor: AppTheme.primary,
@@ -212,12 +212,12 @@ class _LeaveScreenState extends State<LeaveScreen>
                         color: AppTheme.textMuted.withValues(alpha: 0.4),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'No leave balance assigned yet.',
                         style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Please contact HR to set up your leave balance.',
                         style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
                         textAlign: TextAlign.center,
@@ -237,7 +237,7 @@ class _LeaveScreenState extends State<LeaveScreen>
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text(
+          Text(
             'Leave Entitlement',
             style: TextStyle(
               fontSize: 15,
@@ -245,7 +245,7 @@ class _LeaveScreenState extends State<LeaveScreen>
               color: AppTheme.textDark,
             ),
           ),
-          const Text(
+          Text(
             'Current year balance',
             style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
           ),
@@ -285,7 +285,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                         color: AppTheme.textMuted.withValues(alpha: 0.4),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'No leave requests yet.',
                         style: TextStyle(color: AppTheme.textMuted, fontSize: 14),
                       ),

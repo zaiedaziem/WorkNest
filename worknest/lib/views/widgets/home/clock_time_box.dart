@@ -33,7 +33,7 @@ class ClockTimeBox extends StatelessWidget {
                   fontSize: 13, fontWeight: FontWeight.w800, color: color)),
           Text(label,
               style:
-                  const TextStyle(fontSize: 10, color: AppTheme.textMuted)),
+                  TextStyle(fontSize: 10, color: AppTheme.textMuted)),
         ],
       ),
     );

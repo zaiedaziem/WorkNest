@@ -114,7 +114,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         size: 40, color: AppTheme.danger),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Couldn\'t load notifications',
+                  Text('Couldn\'t load notifications',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -122,7 +122,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   const SizedBox(height: 6),
                   Text(vm.error ?? '',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 14, color: AppTheme.textMuted)),
+                      style: TextStyle(fontSize: 14, color: AppTheme.textMuted)),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: vm.load,
@@ -154,13 +154,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 size: 40, color: AppTheme.primary),
           ),
           const SizedBox(height: 16),
-          const Text('All caught up!',
+          Text('All caught up!',
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textDark)),
           const SizedBox(height: 6),
-          const Text('No notifications yet.',
+          Text('No notifications yet.',
               style: TextStyle(fontSize: 14, color: AppTheme.textMuted)),
         ],
       ),
@@ -173,7 +173,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Row(
         children: [
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.textMuted,
@@ -210,12 +210,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete Notification',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-        content: const Text('Remove this notification? This cannot be undone.',
+        content: Text('Remove this notification? This cannot be undone.',
             style: TextStyle(fontSize: 14, color: AppTheme.textMuted)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel',
+            child: Text('Cancel',
                 style: TextStyle(color: AppTheme.textMuted)),
           ),
           TextButton(
@@ -380,7 +380,7 @@ class _NotifTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: notif.isRead
-                ? const Color(0xFFF3F4F6)
+                ? AppTheme.surfaceAlt
                 : AppTheme.primary.withValues(alpha: 0.15),
           ),
         ),
@@ -434,7 +434,7 @@ class _NotifTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       notif.body,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13, color: AppTheme.textMuted, height: 1.4),
                     ),
                     const SizedBox(height: 8),
@@ -452,7 +452,7 @@ class _NotifTile extends StatelessWidget {
                         const Spacer(),
                         Text(
                           _timeAgo(notif.createdAt),
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12, color: AppTheme.textMuted),
                         ),
                       ],

@@ -49,9 +49,9 @@ class OtTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF3F4F6)),
+        border: Border.all(color: AppTheme.surfaceAlt),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -106,21 +106,21 @@ class OtTile extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(Icons.calendar_today_rounded,
+                Icon(Icons.calendar_today_rounded,
                     size: 14, color: AppTheme.textMuted),
                 const SizedBox(width: 6),
                 Text(request.displayDate,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textDark)),
                 const SizedBox(width: 14),
-                const Icon(Icons.access_time_rounded,
+                Icon(Icons.access_time_rounded,
                     size: 14, color: AppTheme.textMuted),
                 const SizedBox(width: 6),
                 Text(
                     '${request.displayStartTime} – ${request.displayEndTime}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 14, color: AppTheme.textDark)),
                 const Spacer(),
                 Container(
@@ -140,7 +140,7 @@ class OtTile extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(request.reason,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 13, color: AppTheme.textMuted)),
             if (request.hrRemarks != null &&
                 request.hrRemarks!.isNotEmpty) ...[
@@ -148,17 +148,17 @@ class OtTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
+                  color: AppTheme.surfaceAlt,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.chat_bubble_outline_rounded,
+                    Icon(Icons.chat_bubble_outline_rounded,
                         size: 13, color: AppTheme.textMuted),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(request.hrRemarks!,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12, color: AppTheme.textMuted)),
                     ),
                   ],

@@ -19,7 +19,7 @@ class DateSummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (startDate == null) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 6),
         child: Text(
           'Tap a date to start. Tap another to set the end date.',
@@ -63,7 +63,7 @@ class DateSummaryRow extends StatelessWidget {
           ),
           GestureDetector(
             onTap: onClear,
-            child: const Icon(Icons.close_rounded,
+            child: Icon(Icons.close_rounded,
                 size: 16, color: AppTheme.textMuted),
           ),
         ],

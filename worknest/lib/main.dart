@@ -20,6 +20,8 @@ void main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
+  await AppTheme.loadThemeMode();
+
   runApp(const WorkNestApp());
 }
 
@@ -30,11 +32,34 @@ class WorkNestApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WorkNest',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
-      home: const SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.themeMode,
+      builder: (_, mode, __) => MaterialApp(
+        title: 'WorkNest',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.themeFor(false),
+        darkTheme: AppTheme.themeFor(true),
+        themeMode: mode,
+        builder: (context, child) {
+          final dark = Theme.of(context).brightness == Brightness.dark;
+          if (dark != AppTheme.isDark) {
+            AppTheme.isDark = dark;
+            // Screens read AppTheme colours directly, so repaint everything once
+            // (keeps navigation and screen state)
+            WidgetsBinding.instance.addPostFrameCallback((_) => _rebuildAll(context));
+          }
+          return child!;
+        },
+        home: const SplashScreen(),
+      ),
     );
+  }
+
+  static void _rebuildAll(BuildContext context) {
+    void rebuild(Element element) {
+      element.markNeedsBuild();
+      element.visitChildren(rebuild);
+    }
+    if (context.mounted) (context as Element).visitChildren(rebuild);
   }
 }

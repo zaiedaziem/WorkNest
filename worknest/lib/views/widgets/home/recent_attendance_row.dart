@@ -17,7 +17,7 @@ class RecentAttendanceRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -57,7 +57,7 @@ class RecentAttendanceRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(DateFormat('d MMM yyyy').format(record.date),
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.textDark)),
@@ -66,7 +66,7 @@ class RecentAttendanceRow extends StatelessWidget {
                   '${record.clockIn != null ? DateFormat('hh:mm a').format(record.clockIn!) : '-'}'
                   '  →  '
                   '${record.clockOut != null ? DateFormat('hh:mm a').format(record.clockOut!) : 'Working...'}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12, color: AppTheme.textMuted),
                 ),
               ],
@@ -81,7 +81,7 @@ class RecentAttendanceRow extends StatelessWidget {
               if (record.duration != null) ...[
                 const SizedBox(height: 4),
                 Text(record.durationText,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 11,
                         color: AppTheme.textMuted,
                         fontWeight: FontWeight.w500)),

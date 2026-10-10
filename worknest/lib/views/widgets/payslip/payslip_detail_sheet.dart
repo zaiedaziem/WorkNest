@@ -16,8 +16,8 @@ class PayslipDetailSheet extends StatelessWidget {
       maxChildSize: 0.95,
       minChildSize: 0.5,
       builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -27,7 +27,7 @@ class PayslipDetailSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFE5E7EB),
+                color: AppTheme.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -46,7 +46,7 @@ class PayslipDetailSheet extends StatelessWidget {
                                 color: AppTheme.primary,
                                 letterSpacing: 1.5)),
                         Text(payslip.monthName,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 color: AppTheme.textDark)),
@@ -118,20 +118,20 @@ class PayslipDetailSheet extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
+                        color: AppTheme.surfaceAlt,
                         borderRadius: BorderRadius.circular(10),
                         border:
-                            Border.all(color: const Color(0xFFE5E7EB)),
+                            Border.all(color: AppTheme.border),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.info_outline_rounded,
+                          Icon(Icons.info_outline_rounded,
                               size: 16, color: AppTheme.textMuted),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(payslip.hrRemarks!,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 13,
                                     color: AppTheme.textMuted)),
                           ),
@@ -144,10 +144,10 @@ class PayslipDetailSheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
+                      color: AppTheme.success.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(16),
                       border:
-                          Border.all(color: const Color(0xFFBBF7D0)),
+                          Border.all(color: AppTheme.success.withValues(alpha: 0.35)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -168,7 +168,7 @@ class PayslipDetailSheet extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'This is a computer-generated payslip.',
                     textAlign: TextAlign.center,
                     style:
@@ -186,7 +186,7 @@ class PayslipDetailSheet extends StatelessWidget {
   Widget _sectionTitle(String title) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(title,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.textMuted,
@@ -225,12 +225,12 @@ class PayslipDetailSheet extends StatelessWidget {
             SizedBox(
               width: 140,
               child: Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13, color: AppTheme.textMuted)),
             ),
             Expanded(
               child: Text(value,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textDark)),
@@ -239,9 +239,9 @@ class PayslipDetailSheet extends StatelessWidget {
         ),
       );
 
-  Widget _divider() => const Padding(
+  Widget _divider() => Padding(
         padding: EdgeInsets.symmetric(vertical: 6),
-        child: Divider(color: Color(0xFFE5E7EB)),
+        child: Divider(color: AppTheme.border),
       );
 
   Future<void> _downloadPdf(BuildContext context) async {

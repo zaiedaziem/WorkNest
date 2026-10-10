@@ -18,7 +18,7 @@ class BalanceCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -36,7 +36,7 @@ class BalanceCard extends StatelessWidget {
             children: [
               Text(
                 balance.leavePolicyName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                   color: AppTheme.textDark,
@@ -67,7 +67,7 @@ class BalanceCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
-              backgroundColor: const Color(0xFFE5E7EB),
+              backgroundColor: AppTheme.border,
               valueColor: AlwaysStoppedAnimation<Color>(
                 progress > 0.8 ? AppTheme.danger : AppTheme.primary,
               ),

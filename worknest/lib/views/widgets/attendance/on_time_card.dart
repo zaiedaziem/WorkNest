@@ -21,7 +21,7 @@ class OnTimeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -46,7 +46,7 @@ class OnTimeCard extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: rate ?? 0,
                     strokeWidth: 4,
-                    backgroundColor: const Color(0xFFF3F4F6),
+                    backgroundColor: AppTheme.surfaceAlt,
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
                 ),
@@ -59,7 +59,7 @@ class OnTimeCard extends StatelessWidget {
               style: TextStyle(
                   fontSize: 22, fontWeight: FontWeight.w800, color: color)),
           const SizedBox(height: 2),
-          const Text('On-Time Rate',
+          Text('On-Time Rate',
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
