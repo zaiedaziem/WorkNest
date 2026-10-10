@@ -49,6 +49,21 @@ class ClaimViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> cancelClaim(String claimId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _service.cancelClaim(claimId);
+      _successMessage = 'Claim cancelled.';
+      await loadData();
+    } catch (e) {
+      _errorMessage = friendlyError(e);
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> submitClaim({
     required String claimType,
     required String title,

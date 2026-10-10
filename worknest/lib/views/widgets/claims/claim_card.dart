@@ -5,13 +5,15 @@ import '../../../theme/app_theme.dart';
 
 class ClaimCard extends StatelessWidget {
   final ClaimModel claim;
-  const ClaimCard({super.key, required this.claim});
+  final void Function(String)? onCancel;
+  const ClaimCard({super.key, required this.claim, this.onCancel});
 
   @override
   Widget build(BuildContext context) {
     final statusColor = switch (claim.status) {
       'approved' => AppTheme.success,
       'rejected' => AppTheme.danger,
+      'cancelled' => AppTheme.textMuted,
       _ => AppTheme.warning,
     };
     final typeColor = switch (claim.claimType) {
@@ -189,6 +191,27 @@ class ClaimCard extends StatelessWidget {
                             fontWeight: FontWeight.w500)),
                   ),
                 ],
+              ),
+            ),
+          ],
+          if (claim.status == 'pending' && onCancel != null) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => onCancel!(claim.id),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.danger,
+                  side: const BorderSide(color: AppTheme.danger),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Cancel Claim',
+                  style: TextStyle(fontSize: 13),
+                ),
               ),
             ),
           ],

@@ -8,6 +8,7 @@ import '../../widgets/haptic_refresh_indicator.dart';
 import '../widgets/claims/header_stat.dart';
 import '../widgets/claims/claim_card.dart';
 import '../widgets/claims/submit_claim_sheet.dart';
+import '../../services/error_message.dart';
 
 class ClaimsScreen extends StatefulWidget {
   final UserModel user;
@@ -47,6 +48,11 @@ class _ClaimsScreenState extends State<ClaimsScreen> {
       content: Text(msg),
       backgroundColor: isError ? AppTheme.danger : AppTheme.success,
       behavior: SnackBarBehavior.floating,
+      // Offline: let the user retry straight from the message
+      action: msg == noInternetMessage
+          ? SnackBarAction(
+              label: 'Retry', textColor: Colors.white, onPressed: _viewModel.loadData)
+          : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ));
   }
@@ -170,7 +176,39 @@ class _ClaimsScreenState extends State<ClaimsScreen> {
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         itemCount: _viewModel.history.length,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (_, i) => ClaimCard(claim: _viewModel.history[i]),
+        itemBuilder: (_, i) => ClaimCard(
+          claim: _viewModel.history[i],
+          onCancel: _confirmCancel,
+        ),
+      ),
+    );
+  }
+
+  void _confirmCancel(String claimId) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text(
+          'Cancel Claim',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text('Are you sure you want to cancel this claim?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _viewModel.cancelClaim(claimId);
+            },
+            child: const Text(
+              'Yes, Cancel',
+              style: TextStyle(color: AppTheme.danger),
+            ),
+          ),
+        ],
       ),
     );
   }

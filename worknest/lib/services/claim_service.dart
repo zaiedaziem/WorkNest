@@ -20,6 +20,20 @@ class ClaimService {
     return (data as List).map((e) => ClaimModel.fromMap(e)).toList();
   }
 
+  // ── Cancel a pending claim ────────────────────────────────────────────────
+  // The database only allows an employee to move their own claim from
+  // pending to cancelled.
+  Future<void> cancelClaim(String claimId) async {
+    final updated = await _db
+        .from(_table)
+        .update({'Status': 'cancelled'})
+        .eq('Id', claimId)
+        .select('Id')
+        .timeout(const Duration(seconds: 15));
+
+    if ((updated as List).isEmpty) throw Exception('Claim not found.');
+  }
+
   // ── Submit a new claim ────────────────────────────────────────────────────
   Future<void> submitClaim({
     required String employeeId,

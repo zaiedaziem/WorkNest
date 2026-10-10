@@ -71,7 +71,9 @@ class HomeViewModel extends ChangeNotifier {
 
       _state = HomeState.idle;
     } catch (e) {
-      _state = HomeState.idle;
+      // Surface the problem (e.g. offline) instead of showing an empty screen
+      _errorMessage = friendlyError(e);
+      _state = HomeState.error;
     }
 
     notifyListeners();
