@@ -20,6 +20,7 @@ import '../widgets/home/mini_stat.dart';
 import '../widgets/home/recent_attendance_row.dart';
 import '../widgets/home/profile_row.dart';
 import '../widgets/home/work_type_button.dart';
+import '../widgets/home/change_password_sheet.dart';
 import '../../services/error_message.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -745,6 +746,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Change Password ───────────────────────────────────────────────────────
+
+  Future<void> _showChangePassword() async {
+    Navigator.pop(context); // close the profile sheet
+    final changed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => const ChangePasswordSheet(),
+    );
+    if (changed == true && mounted) {
+      _showSnackbar('Password updated successfully.', isError: false);
+    }
+  }
+
   // ── Sign Out Confirmation ─────────────────────────────────────────────────
 
   Future<void> _confirmSignOut(BuildContext sheetContext) async {
@@ -869,6 +886,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 note: 'Contact HR to change'),
             const SizedBox(height: 8),
             const Divider(),
+            ListTile(
+              leading:
+                  const Icon(Icons.lock_reset_rounded, color: AppTheme.primary),
+              title: const Text('Change Password',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: _showChangePassword,
+            ),
             ListTile(
               leading:
                   const Icon(Icons.logout_rounded, color: AppTheme.danger),

@@ -119,6 +119,32 @@ class AuthService {
     }
   }
 
+  // ── Change password while signed in ───────────────────────────────────────
+  // Re-checks the current password first, so someone holding an unlocked
+  // phone can't change it.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final email = _supabase.auth.currentUser?.email;
+    if (email == null) {
+      throw Exception('Your session has expired. Please log in again.');
+    }
+
+    try {
+      await _supabase.auth
+          .signInWithPassword(email: email, password: currentPassword);
+    } on AuthException {
+      throw Exception('Current password is incorrect.');
+    }
+
+    try {
+      await _supabase.auth.updateUser(UserAttributes(password: newPassword));
+    } on AuthException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
   // ── Sign out ───────────────────────────────────────────────────────────────
   Future<void> signOut() async {
     await _supabase.auth.signOut();
